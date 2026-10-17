@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BuzzerBeater 球隊儀表板 v5</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/css/noto-sans-tc@latest/chinese-traditional-400-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/css/noto-sans-tc@latest/chinese-traditional-700-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/css/noto-sans-tc@latest/chinese-traditional-900-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/css/chakra-petch@latest/latin-600-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/fontsource/css/chakra-petch@latest/latin-700-normal.css">
+<style>
+:root{
+  --bg:#070b14; --bg2:#0c1220; --panel:rgba(255,255,255,.038); --panel2:rgba(255,255,255,.062);
+  --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+  --tx:#e8edf7; --tx2:#9aa7bf; --tx3:#63708a;
+  --org:#ff7a1a; --org2:#ffb03a; --cy:#26d7e8; --grn:#3ddc97; --pur:#a78bfa; --red:#ff5470; --yel:#ffd166;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--tx);
+  font-family:'Noto Sans TC','Chakra Petch',system-ui,sans-serif;
+  font-size:14px; line-height:1.55; overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:-2;
+  background:
+    radial-gradient(1100px 600px at 12% -8%, rgba(255,122,26,.16), transparent 60%),
+    radial-gradient(900px 520px at 92% 4%, rgba(38,215,232,.13), transparent 62%),
+    radial-gradient(800px 700px at 50% 110%, rgba(167,139,250,.10), transparent 60%),
+    linear-gradient(180deg,#070b14,#080d18 40%,#060911);
+}
+body::after{
+  content:''; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.30;
+  background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 90% 65% at 50% 0%,#000 20%,transparent 80%);
+}
+.num{font-family:'Chakra Petch','Noto Sans TC',monospace;font-variant-numeric:tabular-nums}
+
+/* ===== HEADER ===== */
+header{position:relative;overflow:hidden;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(13,20,35,.9),rgba(8,12,22,.75))}
+.hcourt{position:absolute;right:-90px;top:-120px;width:520px;height:520px;opacity:.16;pointer-events:none}
+.hin{position:relative;max-width:1680px;margin:0 auto;padding:20px 26px 0}
+.brand{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{width:56px;height:56px;flex:0 0 56px;filter:drop-shadow(0 4px 16px rgba(255,122,26,.45))}
+.brand h1{font-size:23px;font-weight:900;letter-spacing:.5px;line-height:1.2}
+.brand h1 span{color:var(--org)}
+.brand .sub{color:var(--tx2);font-size:12.5px;letter-spacing:2px;text-transform:uppercase;font-family:'Chakra Petch'}
+.hstats{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap}
+.hstat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 15px;min-width:96px;text-align:center}
+.hstat b{display:block;font-size:20px;font-weight:700;font-family:'Chakra Petch';color:var(--org2);line-height:1.15}
+.hstat i{font-style:normal;font-size:11px;color:var(--tx3);letter-spacing:.6px}
+
+nav{position:sticky;top:0;z-index:60;max-width:1680px;margin:0 auto;padding:14px 26px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;
+  background:rgba(7,11,20,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.tab{border:1px solid transparent;background:transparent;color:var(--tx2);padding:9px 17px;border-radius:10px;cursor:pointer;
+  font-family:inherit;font-size:13.5px;font-weight:700;letter-spacing:.4px;transition:.18s;display:flex;align-items:center;gap:8px}
+.tab:hover{color:var(--tx);background:var(--panel)}
+.tab.on{color:#0b0f18;background:linear-gradient(135deg,var(--org2),var(--org));box-shadow:0 6px 20px rgba(255,122,26,.32)}
+.tab .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.6}
+.navright{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+main{max-width:1680px;margin:0 auto;padding:22px 26px 70px}
+.view{display:none;animation:fade .3s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ===== GENERIC ===== */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;position:relative}
+.card h3{font-size:14px;font-weight:900;letter-spacing:1.4px;color:var(--tx);margin-bottom:14px;display:flex;align-items:center;gap:9px;text-transform:uppercase}
+.card h3::before{content:'';width:4px;height:16px;border-radius:2px;background:linear-gradient(var(--org),var(--org2))}
+.card h3 .hint{font-size:11px;font-weight:400;color:var(--tx3);letter-spacing:0;text-transform:none;margin-left:auto}
+.grid{display:grid;gap:16px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.btn{border:1px solid var(--line2);background:var(--panel2);color:var(--tx);padding:8px 15px;border-radius:9px;cursor:pointer;
+  font-family:inherit;font-size:12.5px;font-weight:700;transition:.16s;letter-spacing:.3px}
+.btn:hover{border-color:var(--org);color:var(--org2);transform:translateY(-1px)}
+.btn.pri{background:linear-gradient(135deg,var(--org),#ff9b3d);color:#12090200;color:#150a02;border-color:transparent}
+.btn.pri:hover{color:#150a02;box-shadow:0 6px 18px rgba(255,122,26,.35)}
+.btn.sm{padding:5px 10px;font-size:11.5px;border-radius:7px}
+.btn.cy{border-color:rgba(38,215,232,.5);color:var(--cy)}
+.btn.cy:hover{background:rgba(38,215,232,.14);color:#7ff0fb}
+.btn.dg:hover{border-color:var(--red);color:var(--red)}
+select,input[type=text],input[type=number]{background:#0d1424;border:1px solid var(--line);color:var(--tx);border-radius:8px;
+  padding:7px 10px;font-family:inherit;font-size:12.5px;outline:none;transition:.15s}
+select:focus,input:focus{border-color:var(--org);box-shadow:0 0 0 3px rgba(255,122,26,.14)}
+select{cursor:pointer}
+label.fl{font-size:11.5px;color:var(--tx3);letter-spacing:.5px;display:block;margin-bottom:5px;font-weight:700}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.3px;border:1px solid}
+.bg-org{color:var(--org2);border-color:rgba(255,122,26,.4);background:rgba(255,122,26,.12)}
+.bg-cy{color:var(--cy);border-color:rgba(38,215,232,.4);background:rgba(38,215,232,.12)}
+.bg-grn{color:var(--grn);border-color:rgba(61,220,151,.4);background:rgba(61,220,151,.12)}
+.bg-red{color:var(--red);border-color:rgba(255,84,112,.4);background:rgba(255,84,112,.12)}
+.bg-pur{color:var(--pur);border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.12)}
+.bg-gry{color:var(--tx2);border-color:var(--line);background:rgba(255,255,255,.05)}
+.muted{color:var(--tx3)}
+.bar{height:7px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;position:relative}
+.bar>i{display:block;height:100%;border-radius:4px;transition:width .5s cubic-bezier(.2,.8,.3,1)}
+.scrollx{overflow-x:auto;scrollbar-width:thin}
+.scrollx::-webkit-scrollbar{height:9px;width:9px}
+.scrollx::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:6px}
+.scrollx::-webkit-scrollbar-track{background:rgba(0,0,0,.2)}
+
+/* ===== PLAYERS TABLE ===== */
+.tbl{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px;min-width:1780px}
+.tbl th{position:sticky;top:0;z-index:5;background:#0f1728;color:var(--tx2);font-weight:700;font-size:11px;letter-spacing:.5px;
+  padding:9px 6px;border-bottom:1px solid var(--line2);white-space:nowrap;text-align:center}
+.tbl th.grpO{color:var(--cy)} .tbl th.grpI{color:var(--org2)} .tbl th.grpP{color:var(--pur)}
+.tbl td{padding:4px 4px;border-bottom:1px solid rgba(255,255,255,.045);text-align:center;white-space:nowrap}
+.tbl tbody tr:hover td{background:rgba(255,255,255,.035)}
+.tbl tbody tr.sel td{background:rgba(255,122,26,.08)}
+.tbl td.stick,.tbl th.stick{position:sticky;left:0;z-index:4;background:#0b1120;text-align:left;padding-left:10px}
+.tbl td.stick2,.tbl th.stick2{position:sticky;left:190px;z-index:4;background:#0b1120}
+.tbl tbody tr:hover td.stick,.tbl tbody tr:hover td.stick2{background:#131c30}
+.tbl td.stick2::after,.tbl th.stick2::after{content:'';position:absolute;right:-1px;top:0;bottom:0;width:1px;background:var(--line)}
+.pname{display:flex;align-items:center;gap:9px}
+.pnum{width:29px;height:29px;flex:0 0 29px;border-radius:8px;display:grid;place-items:center;font-family:'Chakra Petch';font-weight:700;
+  font-size:13px;background:linear-gradient(145deg,#1d2740,#141c2e);border:1px solid var(--line2);color:var(--org2)}
+.pname b{font-weight:700;font-size:12.8px;letter-spacing:.2px}
+.pname small{display:block;color:var(--tx3);font-size:10.5px;letter-spacing:.5px}
+.cellin{width:46px;padding:5px 3px!important;text-align:center;border-radius:6px;font-family:'Chakra Petch';font-weight:600;font-size:12.5px;border:1px solid rgba(255,255,255,.13)!important;background:#101828}
+.cellin:hover{border-color:var(--org)!important}
+.cellin.wide{width:74px}
+.stepper{display:flex;align-items:center;gap:2px;justify-content:center}
+.stepper button{width:19px;height:22px;border-radius:5px;border:1px solid var(--line);background:var(--panel2);color:var(--tx2);
+  cursor:pointer;font-size:12px;line-height:1;font-family:inherit;padding:0}
+.stepper button:hover{border-color:var(--org);color:var(--org2)}
+.stepper input{width:38px;text-align:center;padding:3px 0;border-radius:5px;font-family:'Chakra Petch';font-weight:700}
+.calc{font-family:'Chakra Petch';font-weight:700;font-size:13px}
+.posTag{font-family:'Chakra Petch';font-weight:700;font-size:10.5px;padding:2px 7px;border-radius:5px;letter-spacing:.5px}
+.pPG{background:rgba(38,215,232,.16);color:#5fe3f0} .pSG{background:rgba(61,220,151,.16);color:#63e8b3}
+.pSF{background:rgba(255,209,102,.16);color:#ffdc8a} .pPF{background:rgba(255,122,26,.18);color:#ffa257}
+.pC{background:rgba(167,139,250,.18);color:#c3b0fd}
+.condPip{display:inline-flex;gap:2px;vertical-align:middle;margin-left:5px}
+.condPip s{width:4px;height:11px;border-radius:1px;background:rgba(255,255,255,.14);text-decoration:none;display:block}
+.condPip s.on{background:var(--grn)}
+.condPip s.warn{background:var(--yel)} .condPip s.bad{background:var(--red)}
+.legend{display:flex;gap:14px;align-items:center;font-size:11px;color:var(--tx3);flex-wrap:wrap}
+.lgs{width:52px;height:8px;border-radius:4px;background:linear-gradient(90deg,#1a2233,#2b5f6e,#3fae7a,#f0a92e,#ff5f3d)}
+
+/* ===== LINEUP ===== */
+.lugrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:18px}
+.lu{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:.2s}
+.lu::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c,var(--org))}
+.lu.off{opacity:.42;filter:saturate(.3)}
+.lu.act{border-color:var(--c,var(--org));box-shadow:0 0 0 1px var(--c,var(--org)),0 12px 34px rgba(0,0,0,.4)}
+.luhead{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.luhead .tag{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-family:'Chakra Petch';font-weight:700;font-size:15px;color:#0a0e17;background:var(--c)}
+.luhead input.nm{flex:1;min-width:80px;background:transparent;border:1px solid transparent;font-size:15px;font-weight:900;color:var(--tx);padding:4px 8px}
+.luhead input.nm:hover,.luhead input.nm:focus{border-color:var(--line2);background:#0d1424}
+.court{background:radial-gradient(ellipse at 50% 0%,rgba(255,122,26,.10),transparent 70%),#0a1020;border:1px solid var(--line);border-radius:12px;padding:6px;margin-bottom:12px}
+.court svg{display:block;width:100%;height:auto}
+.slotpick{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.slot{background:#0d1424;border:1px solid var(--line);border-radius:9px;padding:6px 5px;text-align:center}
+.slot .pl{font-size:9.5px;color:var(--tx3);letter-spacing:1px;font-weight:700}
+.slot select{width:100%;padding:4px 2px;font-size:10.5px;background:#111a2c;border-color:var(--line);text-align:center}
+.tac{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.tac .full{grid-column:1/-1}
+input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:4px;background:linear-gradient(90deg,var(--cy),var(--org));outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--org);box-shadow:0 2px 8px rgba(0,0,0,.5)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--org)}
+.rangelbl{display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-top:3px;letter-spacing:.4px}
+.mini{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.mini div{background:#0d1424;border:1px solid var(--line);border-radius:8px;padding:6px;text-align:center}
+.mini b{display:block;font-family:'Chakra Petch';font-size:16px;font-weight:700;line-height:1.2}
+.mini i{font-style:normal;font-size:9.5px;color:var(--tx3);letter-spacing:.4px}
+.fitbig{display:flex;align-items:baseline;gap:7px;margin-bottom:4px}
+.fitbig b{font-family:'Chakra Petch';font-size:36px;font-weight:700;line-height:1;background:linear-gradient(135deg,#fff,var(--c));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.roster{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.chip{display:flex;align-items:center;gap:6px;background:#0d1424;border:1px solid var(--line);border-radius:8px;padding:3px 9px 3px 4px;font-size:11.5px}
+.chip .n{width:21px;height:21px;border-radius:6px;display:grid;place-items:center;font-family:'Chakra Petch';font-weight:700;font-size:10.5px;background:#1c2740;color:var(--org2)}
+.chip em{font-style:normal;color:var(--tx3);font-size:10px}
+
+/* ===== ANALYSIS ===== */
+.anaGrid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px}
+.dimrow{display:grid;grid-template-columns:88px 1fr 44px;gap:9px;align-items:center;margin-bottom:7px}
+.dimrow .lb{font-size:11.5px;color:var(--tx2);text-align:right;font-weight:700}
+.dimrow .vv{font-family:'Chakra Petch';font-weight:700;font-size:12.5px;text-align:right}
+.contrib{display:grid;grid-template-columns:1fr;gap:5px}
+.crow{display:grid;grid-template-columns:132px 1fr 62px;gap:8px;align-items:center;font-size:11.5px}
+.crow .who{display:flex;align-items:center;gap:6px;min-width:0}
+.crow .who b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px}
+.tw{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px}
+.twc{background:#0d1424;border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+.twc .t{display:flex;justify-content:space-between;font-size:11px;color:var(--tx2);margin-bottom:5px}
+.twc .t b{font-family:'Chakra Petch';color:var(--org2)}
+.note{background:rgba(38,215,232,.07);border-left:3px solid var(--cy);padding:9px 12px;border-radius:0 8px 8px 0;font-size:12px;color:#bfe9ef;margin-bottom:7px}
+.note.w{background:rgba(255,84,112,.08);border-left-color:var(--red);color:#ffc9d3}
+.note.g{background:rgba(61,220,151,.08);border-left-color:var(--grn);color:#bdf3dd}
+.note.o{background:rgba(255,122,26,.08);border-left-color:var(--org);color:#ffd9b8}
+.note b{color:#fff}
+
+/* ===== COMPARE ===== */
+.cmpTbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:760px}
+.cmpTbl th,.cmpTbl td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}
+.cmpTbl th{color:var(--tx3);font-size:11px;letter-spacing:.5px;font-weight:700;background:rgba(255,255,255,.02)}
+.cmpTbl td.v{font-family:'Chakra Petch';font-weight:700;text-align:right;width:62px}
+.cmpTbl .best{color:var(--grn)}
+.cmpTbl .worst{color:var(--red);opacity:.75}
+.cmpTbl td.barcell{width:34%}
+
+/* ===== INSIGHT ===== */
+.tier{display:flex;gap:9px;align-items:stretch;margin-bottom:9px}
+.tierLab{flex:0 0 46px;border-radius:10px;display:grid;place-items:center;font-family:'Chakra Petch';font-weight:700;font-size:19px;color:#0a0e17}
+.tierList{flex:1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#0b1120;border:1px solid var(--line);border-radius:10px;padding:7px}
+.pcard{background:linear-gradient(150deg,#131c2f,#0e1524);border:1px solid var(--line);border-radius:12px;padding:12px;transition:.18s}
+.pcard:hover{border-color:var(--line2);transform:translateY(-2px)}
+.pchead{display:flex;gap:9px;align-items:center;margin-bottom:9px}
+.archetype{font-size:10.5px;padding:2px 7px;border-radius:20px;background:rgba(167,139,250,.15);color:var(--pur);border:1px solid rgba(167,139,250,.32);font-weight:700}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 9px;font-size:11.5px}
+.kv dt{color:var(--tx3)} .kv dd{font-family:'Chakra Petch';font-weight:700;text-align:right}
+.optRow{display:grid;grid-template-columns:38px 1fr 96px 76px;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;background:#0d1424;border:1px solid var(--line);margin-bottom:6px;font-size:12px}
+.optRow:hover{border-color:var(--line2)}
+.optRow .rk{font-family:'Chakra Petch';font-weight:700;font-size:16px;color:var(--tx3);text-align:center}
+.optRow.top .rk{color:var(--org2)}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:#141d31;border:1px solid var(--org);
+  color:var(--tx);padding:11px 22px;border-radius:11px;font-size:13px;font-weight:700;z-index:999;opacity:0;transition:.32s;box-shadow:0 14px 40px rgba(0,0,0,.6)}
+.toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+.foot{max-width:1680px;margin:0 auto;padding:0 26px 34px;color:var(--tx3);font-size:11.5px;border-top:1px solid var(--line);padding-top:16px}
+@media(max-width:1080px){.anaGrid{grid-template-columns:1fr}.hstats{width:100%;margin:12px 0 0}}
+@media(max-width:640px){main,nav,.hin{padding-left:14px;padding-right:14px}.lugrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <svg class="hcourt" viewBox="0 0 500 470" fill="none">
+    <rect x="1" y="1" width="498" height="468" stroke="#ff7a1a" stroke-width="2"/>
+    <path d="M30 0 V142 A237 237 0 0 0 470 142 V0" stroke="#ff7a1a" stroke-width="2"/>
+    <rect x="170" y="0" width="160" height="190" stroke="#26d7e8" stroke-width="2"/>
+    <circle cx="250" cy="190" r="60" stroke="#26d7e8" stroke-width="2"/>
+    <circle cx="250" cy="52" r="9" stroke="#ffb03a" stroke-width="2"/>
+    <path d="M210 40 H290" stroke="#ffb03a" stroke-width="3"/>
+  </svg>
+  <div class="hin">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 64 64">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb03a"/><stop offset="1" stop-color="#ff5f1a"/></linearGradient></defs>
+        <circle cx="32" cy="32" r="29" fill="url(#lg)"/>
+        <circle cx="32" cy="32" r="29" fill="none" stroke="#0a0e17" stroke-width="2.5"/>
+        <path d="M32 3v58M3 32h58M11 11c12 10 12 32 0 42M53 11c-12 10-12 32 0 42" stroke="#0a0e17" stroke-width="2.4" fill="none"/>
+        <circle cx="32" cy="32" r="12" fill="none" stroke="rgba(10,14,23,.35)" stroke-width="2"/>
+      </svg>
+      <div>
+        <h1>BUZZERBEATER <span>球隊儀表板</span> v5</h1>
+        <div class="sub">Roster · Lineup · Tactic Analytics</div>
+      </div>
+      <div class="hstats" id="hstats"></div>
+    </div>
+  </div>
+  <nav id="nav"></nav>
+</header>
+
+<main>
+  <section id="v-players" class="view"></section>
+  <section id="v-lineup"  class="view"></section>
+  <section id="v-tactic"  class="view"></section>
+  <section id="v-compare" class="view"></section>
+  <section id="v-insight" class="view"></section>
+</main>
+
+<div class="foot">
+  資料來源：261017_BuzzerBeater_Manager.xlsx（15 名球員）｜外線值 = 跳投+範圍+外防+控球+運球+傳球；內線值 = 內投+內防+籃板+封截｜
+  所有修改會即時同步至陣容分析並儲存於瀏覽器本機（localStorage），可按「重設原始資料」還原。
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==================== 1. 原始資料 ==================== */
+const SEED = [
+{name:"Lee Shi Man",nick:"PG1",num:11,age:29,height:196,pot:4,salary:7887,min:23,cond:7,idx:0,js:8,rg:8,pd:9,bh:10,dr:10,ps:9,is:6,idf:2,rb:3,bs:1,st:9,ft:9,ex:13},
+{name:"Massamba Sadio",nick:"PG2",num:12,age:24,height:188,pot:8,salary:7350,min:25,cond:7,idx:32400,js:8,rg:10,pd:8,bh:9,dr:5,ps:10,is:8,idf:5,rb:3,bs:7,st:2,ft:17,ex:3},
+{name:"Iván Moreno Cala",nick:"PG3",num:13,age:22,height:206,pot:7,salary:4694,min:2,cond:4,idx:14600,js:3,rg:7,pd:10,bh:6,dr:9,ps:8,is:8,idf:4,rb:5,bs:9,st:3,ft:5,ex:1},
+{name:"Elvis Ridente",nick:"SG1",num:21,age:22,height:180,pot:7,salary:6997,min:23,cond:7,idx:29500,js:10,rg:8,md:0,pd:9,bh:8,dr:8,ps:9,is:3,idf:3,rb:5,bs:1,st:8,ft:11,ex:4},
+{name:"Mario Guarizo",nick:"SG2",num:22,age:23,height:190,pot:8,salary:6508,min:25,cond:6,idx:25600,js:9,rg:8,pd:10,bh:6,dr:8,ps:4,is:5,idf:2,rb:7,bs:2,st:8,ft:8,ex:1},
+{name:"Fan Siu Mun",nick:"SG3",num:23,age:25,height:203,pot:3,salary:2877,min:0,cond:7,idx:10700,js:7,rg:4,pd:7,bh:4,dr:3,ps:6,is:3,idf:3,rb:7,bs:1,st:3,ft:6,ex:1},
+{name:"Emile Power",nick:"SF1",num:31,age:19,height:188,pot:6,salary:5435,min:34,cond:7,idx:28900,js:10,rg:7,pd:7,bh:11,dr:11,ps:5,is:10,idf:8,rb:5,bs:4,st:6,ft:10,ex:1},
+{name:"Jan Jahiloo",nick:"SF2",num:32,age:27,height:193,pot:8,salary:6544,min:9,cond:6,idx:22500,js:9,rg:7,pd:9,bh:8,dr:9,ps:6,is:9,idf:10,rb:4,bs:4,st:4,ft:12,ex:5},
+{name:"Cheung Tze Man",nick:"SF3",num:33,age:29,height:206,pot:6,salary:2224,min:0,cond:7,idx:9500,js:5,rg:2,pd:2,bh:7,dr:4,ps:1,is:6,idf:5,rb:5,bs:7,st:6,ft:8,ex:5},
+{name:"Ndiomé Balde",nick:"PF1",num:41,age:24,height:188,pot:9,salary:7322,min:11,cond:5,idx:28400,js:9,rg:5,pd:7,bh:9,dr:7,ps:8,is:8,idf:5,rb:10,bs:10,st:6,ft:18,ex:4},
+{name:"Abdoul Mendy",nick:"PF2",num:42,age:22,height:198,pot:7,salary:7166,min:34,cond:8,idx:29300,js:8,rg:3,pd:8,bh:3,dr:6,ps:8,is:9,idf:10,rb:4,bs:9,st:2,ft:18,ex:3},
+{name:"Lo Tsz Yu",nick:"PF3",num:43,age:29,height:206,pot:5,salary:2571,min:0,cond:7,idx:10500,js:6,rg:7,pd:1,bh:6,dr:7,ps:5,is:7,idf:3,rb:7,bs:4,st:6,ft:4,ex:6},
+{name:"To Chung",nick:"C1",num:51,age:28,height:213,pot:6,salary:9932,min:23,cond:7,idx:0,js:3,rg:3,pd:5,bh:5,dr:2,ps:7,is:9,idf:11,rb:10,bs:6,st:6,ft:8,ex:8},
+{name:"Kwok Fai Kit",nick:"C2",num:52,age:27,height:206,pot:6,salary:10034,min:25,cond:7,idx:0,js:9,rg:1,pd:3,bh:3,dr:2,ps:3,is:9,idf:9,rb:9,bs:6,st:5,ft:9,ex:7},
+{name:"Lancelot Abry",nick:"C3",num:53,age:20,height:213,pot:6,salary:6923,min:6,cond:3,idx:13500,js:8,rg:4,pd:1,bh:7,dr:3,ps:3,is:6,idf:9,rb:9,bs:7,st:2,ft:2,ex:1}
+];
+
+/* ==================== 2. 定義 ==================== */
+const SK = [
+ {k:'js',n:'跳投',g:'O'},{k:'rg',n:'範圍',g:'O'},{k:'pd',n:'外防',g:'O'},
+ {k:'bh',n:'控球',g:'O'},{k:'dr',n:'運球',g:'O'},{k:'ps',n:'傳球',g:'O'},
+ {k:'is',n:'內投',g:'I'},{k:'idf',n:'內防',g:'I'},{k:'rb',n:'籃板',g:'I'},{k:'bs',n:'封截',g:'I'},
+ {k:'st',n:'體能',g:'P'},{k:'ft',n:'罰球',g:'P'},{k:'ex',n:'經驗',g:'P'}
+];
+const SKMAP = Object.fromEntries(SK.map(s=>[s.k,s]));
+const OUTS = ['js','rg','pd','bh','dr','ps'], INS = ['is','idf','rb','bs'];
+const SKMAX = {js:20,rg:20,pd:20,bh:20,dr:20,ps:20,is:20,idf:20,rb:20,bs:20,st:20,ft:20,ex:20};
+
+const sizeOf = p => Math.max(0, Math.min(20, (p.height-176)/44*20));
+
+const CATS = [
+ {k:'shoot', n:'外線投射', f:p=>p.js*1.00+p.rg*0.85+p.ft*0.30},
+ {k:'handle',n:'控球突破', f:p=>p.bh*1.00+p.dr*0.80+p.st*0.15},
+ {k:'pass',  n:'傳球組織', f:p=>p.ps*1.10+p.bh*0.30+p.ex*0.10},
+ {k:'fast',  n:'轉換速度', f:p=>p.dr*0.65+p.bh*0.45+p.st*0.80+p.js*0.25+p.rb*0.25},
+ {k:'post',  n:'內線進攻', f:p=>p.is*1.15+p.ft*0.30+p.bs*0.10},
+ {k:'pdef',  n:'外圍防守', f:p=>p.pd*1.15+p.st*0.25+p.ex*0.10+p.dr*0.10},
+ {k:'idef',  n:'內線防守', f:p=>p.idf*1.10+p.bs*1.00+p.rb*0.25+p.ex*0.08},
+ {k:'reb',   n:'籃板保護', f:p=>p.rb*1.25+p.idf*0.20+p.bs*0.15+sizeOf(p)*0.30},
+ {k:'stam',  n:'體能耐力', f:p=>p.st*1.00},
+ {k:'ft',    n:'罰球穩定', f:p=>p.ft*1.00},
+ {k:'exp',   n:'比賽經驗', f:p=>p.ex*1.00},
+ {k:'size',  n:'身高尺寸', f:p=>sizeOf(p)}
+];
+const CATMAP = Object.fromEntries(CATS.map(c=>[c.k,c]));
+const CATMAX = {};
+{
+  const maxP = {height:220}; SK.forEach(s=>maxP[s.k]=20);
+  CATS.forEach(c=>CATMAX[c.k]=c.f(maxP));
+}
+const OFF_C = ['shoot','handle','pass','post','ft','fast','size'];
+const DEF_C = ['pdef','idef','reb','stam','exp'];
+
+/* 位置權重矩陣（各位置在 12 個分類上的戰術責任） */
+const POSW = {
+ PG:{shoot:.12,handle:.18,pass:.20,pdef:.10,post:.02,idef:.03,reb:.04,stam:.12,ft:.06,exp:.06,size:.02,fast:.08},
+ SG:{shoot:.22,handle:.14,pass:.08,pdef:.16,post:.03,idef:.03,reb:.06,stam:.12,ft:.05,exp:.04,size:.02,fast:.07},
+ SF:{shoot:.16,handle:.09,pass:.07,pdef:.15,post:.09,idef:.09,reb:.12,stam:.09,ft:.05,exp:.04,size:.04,fast:.05},
+ PF:{shoot:.08,handle:.05,pass:.05,pdef:.08,post:.17,idef:.16,reb:.20,stam:.07,ft:.05,exp:.03,size:.04,fast:.03},
+ C :{shoot:.04,handle:.03,pass:.05,pdef:.04,post:.21,idef:.21,reb:.22,stam:.05,ft:.06,exp:.04,size:.06,fast:.02}
+};
+const SLOTS = ['PG','SG','SF','PF','C'];
+const SLOTNAME = {PG:'控球後衛',SG:'得分後衛',SF:'小前鋒',PF:'大前鋒',C:'中鋒'};
+
+/* 戰術向量（對 12 分類的需求權重，程式內會正規化） */
+const VECRAW = {
+ fast:    {shoot:.08,handle:.10,pass:.09,pdef:.06,post:.03,idef:.03,reb:.07,stam:.21,ft:.03,exp:.04,size:.02,fast:.24},
+ slow:    {shoot:.11,handle:.06,pass:.13,pdef:.06,post:.15,idef:.10,reb:.12,stam:.04,ft:.09,exp:.11,size:.03,fast:.00},
+ mid:     {shoot:.10,handle:.08,pass:.11,pdef:.07,post:.09,idef:.07,reb:.10,stam:.11,ft:.06,exp:.07,size:.02,fast:.11},
+ peri:    {shoot:.27,handle:.14,pass:.10,pdef:.09,post:.02,idef:.03,reb:.06,stam:.07,ft:.05,exp:.05,size:.02,fast:.10},
+ ins:     {shoot:.03,handle:.04,pass:.08,pdef:.05,post:.27,idef:.14,reb:.18,stam:.05,ft:.09,exp:.04,size:.03,fast:.00},
+ man:     {shoot:.05,handle:.06,pass:.05,pdef:.30,post:.05,idef:.12,reb:.10,stam:.16,ft:.02,exp:.07,size:.02,fast:.02},
+ z23:     {shoot:.04,handle:.03,pass:.05,pdef:.12,post:.08,idef:.24,reb:.20,stam:.06,ft:.02,exp:.12,size:.06,fast:.00},
+ z32:     {shoot:.05,handle:.04,pass:.06,pdef:.24,post:.05,idef:.12,reb:.12,stam:.12,ft:.02,exp:.14,size:.04,fast:.02},
+ press:   {shoot:.04,handle:.07,pass:.06,pdef:.28,post:.03,idef:.06,reb:.08,stam:.24,ft:.02,exp:.06,size:.02,fast:.06},
+ none:    {shoot:.10,handle:.09,pass:.11,pdef:.09,post:.09,idef:.08,reb:.10,stam:.09,ft:.05,exp:.06,size:.03,fast:.10},
+ isoPost: {shoot:.04,handle:.03,pass:.05,pdef:.05,post:.34,idef:.08,reb:.15,stam:.07,ft:.13,exp:.05,size:.04,fast:.00},
+ isoPeri: {shoot:.28,handle:.22,pass:.08,pdef:.06,post:.02,idef:.03,reb:.04,stam:.07,ft:.09,exp:.07,size:.01,fast:.03},
+ pnr:     {shoot:.13,handle:.22,pass:.16,pdef:.04,post:.17,idef:.04,reb:.09,stam:.07,ft:.04,exp:.06,size:.02,fast:.03},
+ postSplit:{shoot:.14,handle:.04,pass:.20,pdef:.06,post:.24,idef:.08,reb:.11,stam:.05,ft:.05,exp:.08,size:.02,fast:.00},
+ highPost:{shoot:.12,handle:.06,pass:.22,pdef:.07,post:.20,idef:.09,reb:.11,stam:.05,ft:.05,exp:.09,size:.02,fast:.00},
+ motion:  {shoot:.17,handle:.10,pass:.24,pdef:.06,post:.07,idef:.05,reb:.07,stam:.17,ft:.03,exp:.07,size:.01,fast:.06}
+};
+const VEC = {};
+Object.keys(VECRAW).forEach(k=>{
+  const o = VECRAW[k], s = CATS.reduce((a,c)=>a+(o[c.k]||0),0)||1;
+  VEC[k] = {}; CATS.forEach(c=>VEC[k][c.k]=(o[c.k]||0)/s);
+});
+
+/* 戰術核心 → 五人角色使用率 */
+const ROLEW = {
+ none:     {PG:1,SG:1,SF:1,PF:1,C:1},
+ isoPost:  {PG:.85,SG:.80,SF:.85,PF:1.15,C:1.95},
+ isoPeri:  {PG:1.20,SG:1.75,SF:1.50,PF:.80,C:.60},
+ pnr:      {PG:1.75,SG:1.00,SF:1.00,PF:.90,C:1.45},
+ postSplit:{PG:1.00,SG:1.05,SF:1.05,PF:1.25,C:1.60},
+ highPost: {PG:1.15,SG:1.00,SF:1.05,PF:1.30,C:1.50},
+ motion:   {PG:1.20,SG:1.10,SF:1.10,PF:1.00,C:1.00}
+};
+/* 戰術核心 → 球場站位 */
+const SPOTS = {
+ none:     {PG:[250,318],SG:[95,215],SF:[405,215],PF:[150,120],C:[350,120]},
+ isoPost:  {PG:[255,300],SG:[420,250],SF:[80,250],PF:[340,140],C:[198,86]},
+ isoPeri:  {PG:[100,235],SG:[252,248],SF:[408,205],PF:[355,110],C:[158,110]},
+ pnr:      {PG:[222,250],SG:[420,245],SF:[80,245],PF:[165,100],C:[280,192]},
+ postSplit:{PG:[400,240],SG:[100,250],SF:[392,140],PF:[148,150],C:[250,96]},
+ highPost: {PG:[150,290],SG:[350,290],SF:[415,180],PF:[190,120],C:[262,178]},
+ motion:   {PG:[250,290],SG:[110,192],SF:[390,192],PF:[200,102],C:[300,102]}
+};
+
+const PACE_OPTS=[{id:0,n:'極速快攻'},{id:25,n:'偏快'},{id:50,n:'均衡節奏'},{id:75,n:'偏慢'},{id:100,n:'陣地慢攻'}];
+const STYLE_OPTS=[{id:0,n:'純外線'},{id:25,n:'偏外線'},{id:50,n:'內外均衡'},{id:75,n:'偏內線'},{id:100,n:'純內線'}];
+const DEF_OPTS=[{id:'man',n:'人盯人'},{id:'z23',n:'2-3 聯防'},{id:'z32',n:'3-2 聯防'},{id:'press',n:'全場壓迫'}];
+const PLAY_OPTS=[{id:'none',n:'自由流動'},{id:'pnr',n:'中外擋拆'},{id:'isoPost',n:'內線單打'},{id:'isoPeri',n:'外線單打'},{id:'postSplit',n:'低位分球'},{id:'highPost',n:'高位策應'},{id:'motion',n:'傳切跑動'}];
+const LU_COLORS=['#ff7a1a','#26d7e8','#a78bfa','#3ddc97'];
+
+/* ==================== 3. 狀態 ==================== */
+const LS='bb_dash_v5';
+let P=[], LU=[], view='players', activeLU='A', dirty={};
+function pid(n){return n}
+function load(){
+  let ok=false;
+  try{
+    const raw=localStorage.getItem(LS);
+    if(raw){const o=JSON.parse(raw);
+      if(o.P&&o.P.length===SEED.length&&o.LU&&o.LU.length){
+        P=o.P.map(x=>Object.assign({},x)); LU=o.LU; ok=true;
+      }
+    }
+  }catch(e){}
+  if(!ok){
+    P=SEED.map(x=>Object.assign({},x));
+    LU=defaultLineups();
+  }
+  P.forEach(p=>{p.pos=p.nick.replace(/[0-9]/g,'');});
+  LU.forEach((l,i)=>{l.color=LU_COLORS[i%4];});
+}
+function save(){ try{localStorage.setItem(LS,JSON.stringify({P,LU}));}catch(e){} }
+function byNum(n){return P.find(x=>x.num===+n)}
+function defaultLineups(){
+  return [
+   {id:'A',name:'首發主力',on:true,color:LU_COLORS[0],slots:{PG:12,SG:21,SF:31,PF:41,C:51},cfg:{pace:45,style:52,def:'man',play:'pnr'}},
+   {id:'B',name:'外線快攻',on:true,color:LU_COLORS[1],slots:{PG:11,SG:22,SF:32,PF:42,C:53},cfg:{pace:8,style:14,def:'press',play:'motion'}},
+   {id:'C',name:'內線強攻',on:true,color:LU_COLORS[2],slots:{PG:13,SG:21,SF:31,PF:41,C:51},cfg:{pace:88,style:86,def:'z23',play:'isoPost'}},
+   {id:'D',name:'替補輪換',on:true,color:LU_COLORS[3],slots:{PG:11,SG:23,SF:33,PF:43,C:52},cfg:{pace:52,style:45,def:'z32',play:'none'}}
+  ];
+}
+
+/* ==================== 4. 計算核心 ==================== */
+function recalc(p){
+  p.out = OUTS.reduce((a,k)=>a+(+p[k]||0),0);
+  p.inn = INS.reduce((a,k)=>a+(+p[k]||0),0);
+  p.sum = p.out + p.inn;
+  p.pos = p.nick.replace(/[0-9]/g,'');
+  CATS.forEach(c=>{ p['_c_'+c.k] = Math.max(0, Math.min(1, c.f(p)/CATMAX[c.k])); });
+  const cf = 0.72 + 0.28*(clamp(+p.cond||0,1,8)/8);
+  const cap = 16 + (+p.st||0)*1.5;
+  const over = Math.max(0, (+p.min||0)-cap)/Math.max(cap,1);
+  const ff = 1 - Math.min(.18, over*.35);
+  const fresh = 1 + Math.min(.05, Math.max(0,(cap-(+p.min||0))/Math.max(cap,1))*.05);
+  p.eff = clamp(cf*ff*fresh, .45, 1.15);
+  p.cap = cap;
+  CATS.forEach(c=>{ p['_e_'+c.k] = p['_c_'+c.k]*p.eff; });
+  let offN=0,offD=0,defN=0,defD=0; const w=POSW[p.pos]||POSW.SF;
+  OFF_C.forEach(k=>{offN+=w[k]*p['_e_'+k];offD+=w[k];});
+  DEF_C.forEach(k=>{defN+=w[k]*p['_e_'+k];defD+=w[k];});
+  p.off = offN/offD*100; p.def = defN/defD*100;
+  p.reb = p['_e_reb']*100;
+  p.pow = p.off*.44 + p.def*.34 + p.reb*.22;
+  return p;
+}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function recalcAll(){ P.forEach(recalc); }
+
+function tacticVec(cfg){
+  const pv = blend(VEC.fast, VEC.slow, (cfg.pace||50)/100);
+  const sv = blend(VEC.peri, VEC.ins, (cfg.style||50)/100);
+  const dv = VEC[cfg.def]||VEC.man;
+  const yv = VEC[cfg.play]||VEC.none;
+  const out={}; let s=0;
+  CATS.forEach(c=>{
+    out[c.k]= pv[c.k]*.18 + sv[c.k]*.28 + dv[c.k]*.22 + yv[c.k]*.32;
+    s+=out[c.k];
+  });
+  CATS.forEach(c=>out[c.k]/= (s||1));
+  return out;
+}
+function blend(a,b,t){const o={};CATS.forEach(c=>o[c.k]=a[c.k]*(1-t)+b[c.k]*t);return o}
+
+function analyze(lu){
+  const cfg=lu.cfg, tv=tacticVec(cfg), rw=ROLEW[cfg.play]||ROLEW.none;
+  const five=SLOTS.map(s=>byNum(lu.slots[s])).filter(Boolean);
+  let rwSum=SLOTS.reduce((a,s)=>a+(rw[s]||1),0)||1;
+  const cat={}, catRaw={};
+  CATS.forEach(c=>{
+    let n=0,r=0;
+    SLOTS.forEach(s=>{const p=byNum(lu.slots[s]); const w=(rw[s]||1)/rwSum; if(p){n+=w*p['_e_'+c.k]; r+=w*p['_c_'+c.k];}});
+    cat[c.k]=n*100; catRaw[c.k]=r*100;
+  });
+  let fit=0; CATS.forEach(c=>fit+=tv[c.k]*cat[c.k]);
+  const off = five.length? five.reduce((a,p)=>a+p.off,0)/five.length : 0;
+  const def = five.length? five.reduce((a,p)=>a+p.def,0)/five.length : 0;
+  const reb = cat['reb'];
+  const avg = k => five.length? five.reduce((a,p)=>a+(+p[k]||0),0)/five.length : 0;
+  const sum = k => five.reduce((a,p)=>a+(+p[k]||0),0);
+  const bench = P.filter(p=>!Object.values(lu.slots).includes(p.num));
+  const benchSorted = bench.slice().sort((a,b)=>b.pow-a.pow).slice(0,6);
+  const benchPow = benchSorted.length? benchSorted.reduce((a,p)=>a+p.pow,0)/benchSorted.length : 0;
+  const startersPow = five.length? five.reduce((a,p)=>a+p.pow,0)/five.length : 0;
+  const depth = startersPow*.72 + benchPow*.28;
+  const power = fit*.55 + depth*.20 + (avg('cond')/8*100)*.13 + (avg('st')/20*100)*.12;
+  const paceIdx = 100 - (cfg.pace||50);
+  const insideIdx = cat['post']*.5 + cat['reb']*.3 + cat['size']*.2;
+  const outsideIdx = cat['shoot']*.55 + cat['handle']*.25 + cat['fast']*.20;
+  return {lu,cfg,tv,rw,five,cat,catRaw,fit,off,def,reb,bench,benchSorted,benchPow,startersPow,depth,power,
+    avgAge:avg('age'),avgH:avg('height'),avgCond:avg('cond'),avgSt:avg('st'),avgMin:avg('min'),
+    salary:sum('salary'),outSum:sum('out'),inSum:sum('inn'),sumSum:sum('sum'),
+    paceIdx,insideIdx,outsideIdx,
+    effAvg: five.length? five.reduce((a,p)=>a+p.eff,0)/five.length : 0};
+}
+function optimize(cfg, cross){
+  const g={PG:[],SG:[],SF:[],PF:[],C:[]};
+  P.forEach(p=>g[p.pos]&&g[p.pos].push(p));
+  if(cross){
+    g.PG=g.PG.concat(g.SG); g.SG=g.SG.concat(g.SF); g.SF=g.SF.concat(g.PG.filter(x=>!g.SF.includes(x)));
+    g.PF=g.PF.concat(g.C);  g.C =g.C.concat(g.PF.filter(x=>!g.C.includes(x)));
+  }
+  const res=[];
+  for(const a of g.PG)for(const b of g.SG){ if(b.num===a.num)continue;
+   for(const c of g.SF){ if(c.num===a.num||c.num===b.num)continue;
+    for(const d of g.PF){ if(d.num===a.num||d.num===b.num||d.num===c.num)continue;
+     for(const e of g.C){ if(e.num===a.num||e.num===b.num||e.num===c.num||e.num===d.num)continue;
+      const m=analyze({slots:{PG:a.num,SG:b.num,SF:c.num,PF:d.num,C:e.num},cfg});
+      res.push(m);
+     }}}}
+  res.sort((x,y)=>y.fit-x.fit);
+  return res;
+}
+
+/* ==================== 5. 工具 ==================== */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+function esc(s){return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
+function pn(p){return `<span class="num">#${p.num}</span> ${esc(p.name)}`}
+function chip(p,extra){return `<span class="chip"><span class="n num">${p.num}</span>${esc(p.name)}${extra?`<em>${extra}</em>`:''}</span>`}
+function skillColor(v){
+  const t=clamp(v/18,0,1);
+  const stops=[[26,34,51],[35,84,102],[48,150,110],[63,174,122],[240,169,46],[255,95,61]];
+  const x=t*(stops.length-1), i=Math.min(stops.length-2,Math.floor(x)), f=x-i;
+  const c=stops[i].map((a,j)=>Math.round(a+(stops[i+1][j]-a)*f));
+  return `rgba(${c[0]},${c[1]},${c[2]},${0.20+t*0.55})`;
+}
+function txtOn(v){return v>=13?'#0b0f18':'#e8edf7'}
+function grade(v){return v>=80?['bg-grn','優秀']:v>=68?['bg-cy','良好']:v>=55?['bg-org','普通']:v>=42?['bg-pur','偏弱']:['bg-red','不足']}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('on'),2000)}
+function fmt$(v){return '$'+(+v||0).toLocaleString()}
+function condPips(c){let h='<span class="condPip">';for(let i=1;i<=8;i++){const on=i<=c;const cl=on?(c>=7?'on':c>=5?'warn':'bad'):'';h+=`<s class="${cl}"></s>`}return h+'</span>'}
+
+/* ==================== 6. SVG 圖表 ==================== */
+function radarSVG(series, size=330, cats=CATS){
+  const cx=size/2, cy=size/2+4, R=size*0.375, n=cats.length;
+  const pt=(i,r)=>{const a=-Math.PI/2 + i*2*Math.PI/n; return [cx+Math.cos(a)*r, cy+Math.sin(a)*r]};
+  let g='';
+  [.25,.5,.75,1].forEach(t=>{
+    const p=cats.map((c,i)=>pt(i,R*t).map(v=>v.toFixed(1)).join(',')).join(' ');
+    g+=`<polygon points="${p}" fill="none" stroke="rgba(255,255,255,${t===1?.16:.07})" stroke-width="1"/>`;
+  });
+  cats.forEach((c,i)=>{const [x,y]=pt(i,R);g+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,.07)"/>`});
+  let s='';
+  series.forEach(se=>{
+    const p=cats.map((c,i)=>pt(i,R*clamp(se.vals[i]/100,0,1.02)).map(v=>v.toFixed(1)).join(',')).join(' ');
+    s+=`<polygon points="${p}" fill="${se.color}22" stroke="${se.color}" stroke-width="2" stroke-linejoin="round"/>`;
+    cats.forEach((c,i)=>{const [x,y]=pt(i,R*clamp(se.vals[i]/100,0,1.02));s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${se.color}"/>`});
+  });
+  let lb='';
+  cats.forEach((c,i)=>{
+    const [x,y]=pt(i,R+22);
+    const anchor = Math.abs(x-cx)<8?'middle':(x>cx?'start':'end');
+    lb+=`<text x="${x.toFixed(1)}" y="${(y+3.5).toFixed(1)}" fill="#8b98b2" font-size="9.6" text-anchor="${anchor}" font-weight="700">${c.n}</text>`;
+  });
+  return `<svg viewBox="0 0 ${size} ${size+8}" width="100%" style="max-height:${size+10}px">${g}${s}${lb}</svg>`;
+}
+function miniRadar(p,size=190){
+  const vals=CATS.map(c=>p['_c_'+c.k]*100);
+  return radarSVG([{color:'#ff7a1a',vals}],size);
+}
+function courtSVG(lu,m){
+  const sp=SPOTS[m.cfg.play]||SPOTS.none;
+  let dots='';
+  SLOTS.forEach(s=>{
+    const p=byNum(lu.slots[s]); if(!p)return;
+    const [x,y]=sp[s];
+    const rw=(m.rw[s]||1);
+    const rr = 15 + rw*3.2;
+    dots+=`<g>
+      <circle cx="${x}" cy="${y}" r="${rr+7}" fill="${lu.color}" opacity=".13"/>
+      <circle cx="${x}" cy="${y}" r="${rr}" fill="#0d1524" stroke="${lu.color}" stroke-width="2.4"/>
+      <text x="${x}" y="${y+1}" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="14" font-weight="700" font-family="Chakra Petch">${p.num}</text>
+      <text x="${x}" y="${y+rr+13}" text-anchor="middle" fill="#9aa7bf" font-size="9.5" font-weight="700">${s}·${esc(p.name.split(' ')[0])}</text>
+      ${rw>1.3?`<text x="${x}" y="${y-rr-6}" text-anchor="middle" fill="${lu.color}" font-size="9" font-weight="700">使用率 ×${rw.toFixed(2)}</text>`:''}
+    </g>`;
+  });
+  return `<svg viewBox="0 0 500 400">
+    <defs><linearGradient id="fl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1206"/><stop offset="1" stop-color="#0b1020"/></linearGradient></defs>
+    <rect x="0" y="0" width="500" height="400" fill="url(#fl)" opacity=".55"/>
+    <rect x="6" y="6" width="488" height="388" fill="none" stroke="rgba(255,176,58,.42)" stroke-width="2"/>
+    <path d="M30 6 V120 A237 237 0 0 0 470 120 V6" fill="none" stroke="rgba(255,176,58,.4)" stroke-width="2"/>
+    <rect x="172" y="6" width="156" height="184" fill="rgba(255,122,26,.09)" stroke="rgba(38,215,232,.42)" stroke-width="2"/>
+    <circle cx="250" cy="190" r="58" fill="none" stroke="rgba(38,215,232,.4)" stroke-width="2"/>
+    <path d="M212 190 A58 58 0 0 0 288 190" fill="none" stroke="rgba(38,215,232,.28)" stroke-width="2" stroke-dasharray="5 5"/>
+    <path d="M214 34 A38 38 0 0 0 286 34" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.6"/>
+    <path d="M216 26 H284" stroke="#ffb03a" stroke-width="4"/>
+    <circle cx="250" cy="34" r="8" fill="none" stroke="#ff7a1a" stroke-width="3"/>
+    <line x1="6" y1="394" x2="494" y2="394" stroke="rgba(255,255,255,.22)" stroke-width="2"/>
+    ${dots}
+  </svg>`;
+}
+
+/* ==================== 7. 渲染：導覽 ==================== */
+const TABS=[
+ {id:'players',n:'球員資料庫',d:'編輯能力·狀態·出賽時間'},
+ {id:'lineup', n:'陣容編排',  d:'四組陣容 × 戰術設定'},
+ {id:'tactic', n:'戰術深度分析',d:'分類能力值·契合度拆解'},
+ {id:'compare',n:'陣容對比',  d:'多陣容並列評比'},
+ {id:'insight',n:'深度洞察',  d:'定位·優化器·負荷·效率'}
+];
+function renderNav(){
+  $('#nav').innerHTML = TABS.map(t=>`<button class="tab ${view===t.id?'on':''}" data-v="${t.id}"><span class="dot"></span>${t.n}</button>`).join('')
+   + `<div class="navright">
+        <select id="luJump" title="目前分析陣容">${LU.map(l=>`<option value="${l.id}" ${l.id===activeLU?'selected':''}>${l.id} · ${esc(l.name)}</option>`).join('')}</select>
+        <button class="btn sm" id="btnSave">匯出 JSON</button>
+        <button class="btn sm dg" id="btnReset">重設原始資料</button>
+      </div>`;
+  $$('#nav .tab').forEach(b=>b.onclick=()=>{view=b.dataset.v;render();window.scrollTo({top:0,behavior:'smooth'})});
+  $('#luJump').onchange=e=>{activeLU=e.target.value;render()};
+  $('#btnSave').onclick=()=>{
+    const blob=new Blob([JSON.stringify({P,LU},null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='bb_roster_v5.json';a.click();toast('已匯出 JSON 檔案');
+  };
+  $('#btnReset').onclick=()=>{
+    if(!confirm('確定重設為 xlsx 原始資料？所有修改與陣容設定都會清除。'))return;
+    localStorage.removeItem(LS); load(); recalcAll(); render(); toast('已重設為原始資料');
+  };
+}
+function renderHead(){
+  const on=P.filter(p=>p.min>0);
+  const totalSal=P.reduce((a,p)=>a+(+p.salary||0),0);
+  const avgPow=P.reduce((a,p)=>a+p.pow,0)/P.length;
+  const best=P.slice().sort((a,b)=>b.pow-a.pow)[0];
+  const bestLU=LU.map(analyze).sort((a,b)=>b.power-a.power)[0];
+  $('#hstats').innerHTML=`
+   <div class="hstat"><b>${P.length}</b><i>球員</i></div>
+   <div class="hstat"><b>${fmt$(totalSal)}</b><i>週薪總額</i></div>
+   <div class="hstat"><b>${(P.reduce((a,p)=>a+p.age,0)/P.length).toFixed(1)}</b><i>平均年齡</i></div>
+   <div class="hstat"><b>${avgPow.toFixed(1)}</b><i>平均戰力</i></div>
+   <div class="hstat"><b class="num">#${best.num}</b><i>MVP ${esc(best.name.split(' ')[0])}</i></div>
+   <div class="hstat"><b>${bestLU.fit.toFixed(1)}</b><i>最佳契合 ${bestLU.lu.id}</i></div>`;
+}
+
+/* ==================== 8. 球員資料庫 ==================== */
+let pf={q:'',pos:'ALL',sort:'sum',desc:true,open:null};
+function renderPlayers(){
+  const cols=`<tr>
+    <th class="stick">球員</th><th class="stick2">位置</th>
+    <th>年齡</th><th>身高</th><th>潛力</th><th>薪金</th>
+    <th>出賽時間</th><th>狀態</th><th>效率</th>
+    <th>總和</th><th class="grpO">外線</th><th class="grpI">內線</th>
+    ${SK.filter(s=>s.g==='O').map(s=>`<th class="grpO">${s.n}</th>`).join('')}
+    ${SK.filter(s=>s.g==='I').map(s=>`<th class="grpI">${s.n}</th>`).join('')}
+    ${SK.filter(s=>s.g==='P').map(s=>`<th class="grpP">${s.n}</th>`).join('')}
+    <th>進攻</th><th>防守</th><th>戰力</th><th>定位</th></tr>`;
+
+  let list=P.slice();
+  if(pf.pos!=='ALL') list=list.filter(p=>p.pos===pf.pos);
+  if(pf.q){const q=pf.q.toLowerCase();list=list.filter(p=>(p.name+' '+p.nick+' '+p.num).toLowerCase().includes(q))}
+  const keyf={sum:p=>p.sum,out:p=>p.out,inn:p=>p.inn,pow:p=>p.pow,age:p=>-p.age,salary:p=>-p.salary,
+    cond:p=>p.cond,min:p=>p.min,eff:p=>p.eff,num:p=>-p.num,height:p=>p.height,pot:p=>p.pot};
+  list.sort((a,b)=>(keyf[pf.sort](a)-keyf[pf.sort](b))*(pf.desc?-1:1));
+
+  const body=list.map(p=>{
+    const used = LU.some(l=>Object.values(l.slots).includes(p.num));
+    return `<tr data-id="${p.num}" class="${used?'sel':''}">
+      <td class="stick"><div class="pname"><span class="pnum num">${p.num}</span><span><b>${esc(p.name)}</b><small>${esc(p.nick)} ${used?'· 陣容中':''}</small></span></div></td>
+      <td class="stick2"><span class="posTag p${p.pos}">${p.pos}</span></td>
+      <td><input class="cellin" type="number" min="16" max="45" data-f="age" data-p="${p.num}" value="${p.age}"></td>
+      <td><input class="cellin" type="number" min="160" max="240" data-f="height" data-p="${p.num}" value="${p.height}"></td>
+      <td><input class="cellin" type="number" min="0" max="15" data-f="pot" data-p="${p.num}" value="${p.pot}"></td>
+      <td><input class="cellin wide" type="number" min="0" step="100" data-f="salary" data-p="${p.num}" value="${p.salary}"></td>
+      <td><div class="stepper"><button data-step="-1" data-f="min" data-p="${p.num}">−</button><input type="number" min="0" max="48" data-f="min" data-p="${p.num}" value="${p.min}"><button data-step="1" data-f="min" data-p="${p.num}">+</button></div></td>
+      <td><div class="stepper"><button data-step="-1" data-f="cond" data-p="${p.num}">−</button><input type="number" min="1" max="8" data-f="cond" data-p="${p.num}" value="${p.cond}"><button data-step="1" data-f="cond" data-p="${p.num}">+</button></div>${condPips(+p.cond)}</td>
+      <td><span class="badge ${p.eff>=1?'bg-grn':p.eff>=.9?'bg-cy':p.eff>=.8?'bg-org':'bg-red'} num">${(p.eff*100).toFixed(0)}%</span></td>
+      <td class="calc" data-calc="sum">${p.sum}</td>
+      <td class="calc" data-calc="out" style="color:#5fe3f0">${p.out}</td>
+      <td class="calc" data-calc="inn" style="color:#ffa257">${p.inn}</td>
+      ${SK.map(s=>`<td><input class="cellin sk" type="number" min="0" max="20" data-f="${s.k}" data-p="${p.num}" value="${p[s.k]}"
+          style="background:${skillColor(p[s.k])};color:${txtOn(p[s.k])}"></td>`).join('')}
+      <td class="calc" data-calc="off">${p.off.toFixed(1)}</td>
+      <td class="calc" data-calc="def">${p.def.toFixed(1)}</td>
+      <td class="calc" data-calc="pow" style="color:var(--org2)">${p.pow.toFixed(1)}</td>
+      <td><span class="archetype">${archetype(p)}</span></td>
+    </tr>`;
+  }).join('');
+
+  $('#v-players').innerHTML=`
+  <div class="card" style="margin-bottom:16px">
+    <h3>球員資料庫 <span class="hint">直接點選數字即可修改，全部計算與陣容分析即時同步</span></h3>
+    <div class="row" style="margin-bottom:12px">
+      <input type="text" id="pq" placeholder="搜尋姓名 / 暱稱 / 號碼…" value="${esc(pf.q)}" style="width:220px">
+      <select id="ppos">${['ALL','PG','SG','SF','PF','C'].map(x=>`<option value="${x}" ${pf.pos===x?'selected':''}>${x==='ALL'?'全部位置':x+' '+SLOTNAME[x]}</option>`).join('')}</select>
+      <select id="psort">${[['sum','總和'],['out','外線值'],['inn','內線值'],['pow','戰力指數'],['eff','效率係數'],['cond','狀態'],['min','出賽時間'],['age','年齡(小→大)'],['salary','薪金(高→低)'],['height','身高'],['pot','潛力'],['num','號碼']].map(x=>`<option value="${x[0]}" ${pf.sort===x[0]?'selected':''}>排序：${x[1]}</option>`).join('')}</select>
+      <button class="btn sm" id="pdir">${pf.desc?'降序 ▼':'升序 ▲'}</button>
+      <div style="flex:1"></div>
+      <div class="legend"><span>能力色階</span><span class="lgs"></span><span class="num">0 → 20</span></div>
+      <button class="btn sm cy" id="bulkCond">本週狀態 +1（全隊）</button>
+      <button class="btn sm" id="restAll">出賽時間歸零（休整）</button>
+    </div>
+    <div class="scrollx" style="max-height:70vh;overflow-y:auto">
+      <table class="tbl"><thead>${cols}</thead><tbody>${body}</tbody></table>
+    </div>
+    <div class="row" style="margin-top:12px;font-size:11.5px;color:var(--tx3)">
+      <span>◆ <b style="color:#5fe3f0">外線值</b> = 跳投+範圍+外防+控球+運球+傳球</span>
+      <span>◆ <b style="color:#ffa257">內線值</b> = 內投+內防+籃板+封截</span>
+      <span>◆ <b style="color:var(--grn)">效率係數</b> = 狀態(1–8) × 體能負荷(出賽時間 vs 體能上限) × 新鮮度</span>
+      <span>◆  highlighted 列 = 已被某組陣容選中</span>
+    </div>
+  </div>`;
+
+  $('#pq').oninput=e=>{pf.q=e.target.value;renderPlayers()};
+  $('#ppos').onchange=e=>{pf.pos=e.target.value;renderPlayers()};
+  $('#psort').onchange=e=>{pf.sort=e.target.value;renderPlayers()};
+  $('#pdir').onclick=()=>{pf.desc=!pf.desc;renderPlayers()};
+  $('#bulkCond').onclick=()=>{P.forEach(p=>p.cond=clamp(+p.cond+1,1,8));afterEdit('全隊狀態 +1（本週更新）')};
+  $('#restAll').onclick=()=>{P.forEach(p=>p.min=0);afterEdit('出賽時間已歸零')};
+
+  $$('#v-players tbody input').forEach(inp=>{
+    inp.addEventListener('input',()=>onCell(inp,false));
+    inp.addEventListener('change',()=>onCell(inp,true));
+  });
+  $$('#v-players tbody button[data-step]').forEach(b=>{
+    b.onclick=()=>{
+      const p=byNum(b.dataset.p), f=b.dataset.f, d=+b.dataset.step;
+      const mx=f==='cond'?8:48, mn=f==='cond'?1:0;
+      p[f]=clamp((+p[f]||0)+d,mn,mx);
+      recalc(p);
+      const inp=document.querySelector(`#v-players input[data-p="${p.num}"][data-f="${f}"]`);
+      if(inp)inp.value=p[f];
+      refreshRow(p); renderHead(); save(); refreshOther();
+    };
+  });
+}
+function onCell(inp,full){
+  const p=byNum(inp.dataset.p); if(!p)return;
+  const f=inp.dataset.f; let v=parseFloat(inp.value);
+  if(isNaN(v))v=0;
+  const mx = SKMAP[f]?20 : (f==='cond'?8:f==='min'?48:f==='height'?240:f==='pot'?15:f==='salary'?999999:45);
+  v=clamp(v,0,mx); p[f]=v;
+  recalc(p);
+  if(SKMAP[f]){inp.style.background=skillColor(v);inp.style.color=txtOn(v)}
+  refreshRow(p); renderHead(); save();
+  if(full) refreshOther();
+}
+function refreshRow(p){
+  const tr=document.querySelector(`#v-players tr[data-id="${p.num}"]`); if(!tr)return;
+  const set=(k,v)=>{const e=tr.querySelector(`[data-calc="${k}"]`);if(e)e.textContent=v};
+  set('sum',p.sum);set('out',p.out);set('inn',p.inn);
+  set('off',p.off.toFixed(1));set('def',p.def.toFixed(1));set('pow',p.pow.toFixed(1));
+  const eb=tr.querySelector('td:nth-child(9) .badge');
+  if(eb){eb.textContent=(p.eff*100).toFixed(0)+'%';
+    eb.className='badge num '+(p.eff>=1?'bg-grn':p.eff>=.9?'bg-cy':p.eff>=.8?'bg-org':'bg-red')}
+  const cp=tr.querySelector('.condPip'); if(cp)cp.outerHTML=condPips(+p.cond);
+  const ar=tr.querySelector('.archetype'); if(ar)ar.textContent=archetype(p);
+}
+function afterEdit(msg){recalcAll();render();toast(msg)}
+function refreshOther(){ /* 其他視圖切換時會重新 render */ }
+
+/* ==================== 9. 陣容編排 ==================== */
+function renderLineup(){
+  const cards=LU.map((l,i)=>{
+    const m=analyze(l);
+    const opts=(slot)=>{
+      const cur=l.slots[slot];
+      let arr=P.slice();
+      arr.sort((a,b)=> (a.pos===slot?0:1)-(b.pos===slot?0:1) || b.pow-a.pow);
+      return `<option value="">— 空缺 —</option>`+arr.map(p=>
+        `<option value="${p.num}" ${+p.num===+cur?'selected':''}>#${p.num} ${esc(p.name)}${p.pos!==slot?' ('+p.pos+')':''} · ${p.sum}</option>`).join('');
+    };
+    const dup = LU.filter(x=>x.id!==l.id).some(x=>SLOTS.some(s=>x.slots[s]&&x.slots[s]===l.slots[s]));
+    return `<div class="lu ${l.on?'':'off'} ${l.id===activeLU?'act':''}" style="--c:${l.color}" data-lu="${l.id}">
+      <div class="luhead">
+        <span class="tag">${l.id}</span>
+        <input class="nm" value="${esc(l.name)}" data-nm="${l.id}" maxlength="18">
+        <span class="badge ${m.fit>=70?'bg-grn':m.fit>=58?'bg-cy':'bg-org'} num">契合 ${m.fit.toFixed(1)}</span>
+        <button class="btn sm" data-toggle="${l.id}" title="啟用/停用對比">${l.on?'啟用中':'已停用'}</button>
+        <button class="btn sm cy" data-focus="${l.id}">深度分析 →</button>
+      </div>
+      ${dup?'<div class="note o" style="margin-bottom:10px">⚠ 此陣容與其他陣容有共用球員，比賽中無法同時上場（僅供戰術比較）。</div>':''}
+      <div class="court">${courtSVG(l,m)}</div>
+      <div class="slotpick">
+        ${SLOTS.map(s=>`<div class="slot"><div class="pl">${s}</div><select data-slot="${s}" data-lu="${l.id}">${opts(s)}</select></div>`).join('')}
+      </div>
+      <div class="tac">
+        <div class="full">
+          <label class="fl">進攻節奏 <span style="color:var(--cy)">快</span> ↔ <span style="color:var(--org2)">慢</span></label>
+          <input type="range" min="0" max="100" value="${l.cfg.pace}" data-cfg="pace" data-lu="${l.id}">
+          <div class="rangelbl"><span>極速快攻</span><span style="color:var(--org2);font-weight:700">${PACE_OPTS.reduce((a,b)=>Math.abs(b.id-l.cfg.pace)<Math.abs(a.id-l.cfg.pace)?b:a).n}</span><span>陣地慢攻</span></div>
+        </div>
+        <div class="full">
+          <label class="fl">進攻重心 <span style="color:var(--cy)">外線</span> ↔ <span style="color:var(--org2)">內線</span></label>
+          <input type="range" min="0" max="100" value="${l.cfg.style}" data-cfg="style" data-lu="${l.id}">
+          <div class="rangelbl"><span>純外線</span><span style="color:var(--org2);font-weight:700">${STYLE_OPTS.reduce((a,b)=>Math.abs(b.id-l.cfg.style)<Math.abs(a.id-l.cfg.style)?b:a).n}</span><span>純內線</span></div>
+        </div>
+        <div><label class="fl">防守體系</label><select data-cfg="def" data-lu="${l.id}">${DEF_OPTS.map(d=>`<option value="${d.id}" ${l.cfg.def===d.id?'selected':''}>${d.n}</option>`).join('')}</select></div>
+        <div><label class="fl">戰術核心</label><select data-cfg="play" data-lu="${l.id}">${PLAY_OPTS.map(d=>`<option value="${d.id}" ${l.cfg.play===d.id?'selected':''}>${d.n}</option>`).join('')}</select></div>
+      </div>
+      <div class="row" style="margin-bottom:11px;gap:7px">
+        <button class="btn sm pri" data-opt="${l.id}">⚡ 依目前戰術自動優化五人</button>
+        <button class="btn sm" data-opt2="${l.id}">最佳戰力（不顧體能）</button>
+        <button class="btn sm" data-clear="${l.id}">清空</button>
+      </div>
+      <div class="mini">
+        <div><b style="color:var(--cy)">${m.off.toFixed(1)}</b><i>進攻指數</i></div>
+        <div><b style="color:var(--grn)">${m.def.toFixed(1)}</b><i>防守指數</i></div>
+        <div><b style="color:var(--org2)">${m.reb.toFixed(1)}</b><i>籃板保護</i></div>
+        <div><b style="color:var(--pur)">${m.power.toFixed(1)}</b><i>綜合戰力</i></div>
+        <div><b>${m.avgH.toFixed(0)}</b><i>平均身高 cm</i></div>
+        <div><b>${m.avgAge.toFixed(1)}</b><i>平均年齡</i></div>
+        <div><b class="${m.avgCond>=6.5?'':'num'}" style="color:${m.avgCond>=6.5?'var(--grn)':'var(--yel)'}">${m.avgCond.toFixed(1)}</b><i>平均狀態/8</i></div>
+        <div><b style="color:${m.avgSt>=6?'var(--grn)':'var(--red)'}">${m.avgSt.toFixed(1)}</b><i>平均體能</i></div>
+      </div>
+      <div class="roster">${m.five.map(p=>chip(p,`${p.pos} ${p.sum}`)).join('')}</div>
+      <div class="row" style="margin-top:9px;font-size:11px;color:var(--tx3)">
+        <span>外線總和 <b class="num" style="color:#5fe3f0">${m.outSum}</b></span>
+        <span>內線總和 <b class="num" style="color:#ffa257">${m.inSum}</b></span>
+        <span>週薪 <b class="num">${fmt$(m.salary)}</b></span>
+        <span>板凳戰力 <b class="num" style="color:var(--pur)">${m.benchPow.toFixed(1)}</b></span>
+        <span>效率均值 <b class="num">${(m.effAvg*100).toFixed(0)}%</b></span>
+      </div>
+    </div>`;
+  }).join('');
+
+  $('#v-lineup').innerHTML=`
+   <div class="card" style="margin-bottom:16px">
+     <h3>陣容編排與戰術設定 <span class="hint">球場站位會依「戰術核心」自動改變；使用率 = 該戰術下球員的球權/責任比重</span></h3>
+     <div class="row">
+       <span class="muted" style="font-size:12px">預設組合：</span>
+       ${[['best','綜合最佳首發'],['fast','極速外線'],['slow','內線陣地'],['def','防守鐵桶'],['fresh','體能充沛']].map(x=>`<button class="btn sm" data-preset="${x[0]}">${x[1]}</button>`).join('')}
+       <div style="flex:1"></div>
+       <span class="muted" style="font-size:12px">共 ${LU.filter(l=>l.on).length} 組啟用中 · 可在「陣容對比」頁並列評比</span>
+     </div>
+   </div>
+   <div class="lugrid">${cards}</div>`;
+
+  $$('#v-lineup [data-nm]').forEach(e=>e.onchange=()=>{LU.find(l=>l.id===e.dataset.nm).name=e.value;save();renderNav();renderHead()});
+  $$('#v-lineup [data-slot]').forEach(e=>e.onchange=()=>{
+    const l=LU.find(x=>x.id===e.dataset.lu); l.slots[e.dataset.slot]=e.value?+e.value:null; save(); renderLineup(); renderHead();});
+  $$('#v-lineup [data-cfg]').forEach(e=>{
+    const h=()=>{const l=LU.find(x=>x.id===e.dataset.lu);
+      l.cfg[e.dataset.cfg]= e.type==='range'? +e.value : e.value; save(); renderLineup();};
+    e.addEventListener('input',h); e.addEventListener('change',h);});
+  $$('#v-lineup [data-toggle]').forEach(b=>b.onclick=()=>{const l=LU.find(x=>x.id===b.dataset.toggle);l.on=!l.on;save();render()});
+  $$('#v-lineup [data-focus]').forEach(b=>b.onclick=()=>{activeLU=b.dataset.focus;view='tactic';render();window.scrollTo({top:0,behavior:'smooth'})});
+  $$('#v-lineup [data-clear]').forEach(b=>b.onclick=()=>{const l=LU.find(x=>x.id===b.dataset.clear);SLOTS.forEach(s=>l.slots[s]=null);save();renderLineup()});
+  $$('#v-lineup [data-opt]').forEach(b=>b.onclick=()=>{
+    const l=LU.find(x=>x.id===b.dataset.opt); const r=optimize(l.cfg,false)[0];
+    l.slots=Object.assign({},r.lu.slots); save(); renderLineup(); renderHead(); toast(`阵容 ${l.id} 已優化：契合度 ${r.fit.toFixed(1)}`);});
+  $$('#v-lineup [data-opt2]').forEach(b=>b.onclick=()=>{
+    const l=LU.find(x=>x.id===b.dataset.opt2);
+    const r=optimize({pace:50,style:50,def:'man',play:'none'},false)[0];
+    l.slots=Object.assign({},r.lu.slots); save(); renderLineup(); renderHead(); toast(`阵容 ${l.id} 已換成戰力最強五人`);});
+  $$('#v-lineup [data-preset]').forEach(b=>b.onclick=()=>applyPreset(b.dataset.preset));
+}
+function applyPreset(k){
+  const cfgs={
+    best:{pace:50,style:50,def:'man',play:'pnr'},
+    fast:{pace:5,style:10,def:'press',play:'motion'},
+    slow:{pace:92,style:90,def:'z23',play:'isoPost'},
+    def:{pace:60,style:40,def:'z32',play:'none'},
+    fresh:{pace:45,style:50,def:'man',play:'motion'}
+  };
+  const cfg=cfgs[k];
+  let pool=P.slice();
+  if(k==='fresh'){ pool.forEach(p=>p._sc=p.pow*(0.6+0.4*p.eff)+ (16-Math.min(16,p.min))*0.6); }
+  let res;
+  if(k==='fresh'){
+    // 挑選「效率×戰力」最高且目前出賽時間低的五人
+    const g={PG:[],SG:[],SF:[],PF:[],C:[]};
+    pool.forEach(p=>g[p.pos].push(p));
+    Object.values(g).forEach(a=>a.sort((x,y)=>(y.pow*(0.55+0.45*y.eff)+Math.max(0,16-y.min)*0.7)-(x.pow*(0.55+0.45*x.eff)+Math.max(0,16-x.min)*0.7)));
+    const slots={}; SLOTS.forEach(s=>slots[s]=g[s][0].num);
+    LU[0].slots=slots; LU[0].cfg=cfg;
+  }else{
+    res=optimize(cfg,false)[0];
+    LU[0].slots=Object.assign({},res.lu.slots); LU[0].cfg=cfg;
+  }
+  LU[0].name={best:'綜合最佳首發',fast:'極速外線',slow:'內線陣地',def:'防守鐵桶',fresh:'體能充沛'}[k];
+  activeLU='A'; save(); renderLineup(); renderHead(); renderNav(); toast(`已套用「${LU[0].name}」預設陣容`);
+}
+
+/* ==================== 10. 戰術深度分析 ==================== */
+function renderTactic(){
+  const lu=LU.find(l=>l.id===activeLU)||LU[0]; const m=analyze(lu);
+  const catSeries=[{color:lu.color,vals:CATS.map(c=>m.cat[c.k])}];
+  const rawSeries=[{color:'#63708a',vals:CATS.map(c=>m.catRaw[c.k])}];
+  const needBar=CATS.slice().sort((a,b)=>m.tv[b.k]-m.tv[a.k]);
+  const gap=CATS.map(c=>({c,need:m.tv[c.k]*100,have:m.cat[c.k],d:m.cat[c.k]-m.tv[c.k]*100})).sort((a,b)=>a.d-b.d);
+
+  const contrib=CATS.map(c=>{
+    let rows=SLOTS.map(s=>{
+      const p=byNum(lu.slots[s]); if(!p)return null;
+      const w=(m.rw[s]||1)/SLOTS.reduce((a,x)=>a+(m.rw[x]||1),0);
+      return {s,p,v:p['_e_'+c.k]*w*100,raw:p['_c_'+c.k]*100};
+    }).filter(Boolean).sort((a,b)=>b.v-a.v);
+    return {c,rows,tot:rows.reduce((a,r)=>a+r.v,0)};
+  });
+
+  const warn=[];
+  if(m.avgCond<6) warn.push({t:'w',h:`平均狀態僅 <b>${m.avgCond.toFixed(1)}/8</b>，效率被壓縮至 <b>${(m.effAvg*100).toFixed(0)}%</b>，實際輸出低於帳面能力。`});
+  m.five.filter(p=>p.min>p.cap+4).forEach(p=>warn.push({t:'w',h:`<b>#${p.num} ${esc(p.name)}</b> 本週出賽 <b>${p.min}</b> 分鐘已超出體能上限 <b>${p.cap.toFixed(0)}</b>，過度使用將導致狀態下滑。`}));
+  m.five.filter(p=>+p.cond<=4).forEach(p=>warn.push({t:'w',h:`<b>#${p.num} ${esc(p.name)}</b> 狀態低落（${p.cond}/8），建議本場減少上場時間。`}));
+  if(m.cat['reb']<50) warn.push({t:'w',h:`籃板保護 <b>${m.cat.reb.toFixed(1)}</b> 偏低，面對進攻型內線會失去二次進攻機會。`});
+  if(m.cat['stam']<40) warn.push({t:'w',h:`體能耐力 <b>${m.cat.stam.toFixed(1)}</b> 不足，快攻/壓迫戰術無法維持超過半場。`});
+  if(m.cat['exp']<40) warn.push({t:'o',h:`比賽經驗 <b>${m.cat.exp.toFixed(1)}</b> 偏低，關鍵時刻（第四節）容易失誤。`});
+  if(m.avgH<196) warn.push({t:'o',h:`平均身高 <b>${m.avgH.toFixed(0)}cm</b>，禁區尺寸吃虧，建議改採 2-3 聯防保護籃板。`});
+  if(!warn.length) warn.push({t:'g',h:'此陣容在目前的戰術設定下沒有明顯短板，可以直接使用。'});
+
+  const best=LU.map(analyze).sort((a,b)=>b.fit-a.fit);
+  $('#v-tactic').innerHTML=`
+  <div class="row" style="margin-bottom:16px">
+    <span style="font-size:12px;color:var(--tx3)">分析對象：</span>
+    ${LU.map(l=>`<button class="btn sm ${l.id===lu.id?'pri':''}" data-ana="${l.id}" style="${l.id===lu.id?'':`border-color:${l.color}55`}">${l.id} · ${esc(l.name)}</button>`).join('')}
+    <div style="flex:1"></div>
+    <span class="badge bg-org">戰術核心：${(PLAY_OPTS.find(x=>x.id===lu.cfg.play)||{}).n}</span>
+    <span class="badge bg-cy">防守：${(DEF_OPTS.find(x=>x.id===lu.cfg.def)||{}).n}</span>
+    <span class="badge bg-pur">節奏 ${(100-lu.cfg.pace).toFixed(0)} / 內外 ${lu.cfg.style.toFixed(0)}</span>
+  </div>
+
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:16px">
+    ${[['戰術契合度',m.fit,lu.color],['進攻指數',m.off,'#26d7e8'],['防守指數',m.def,'#3ddc97'],['籃板保護',m.reb,'#ffb03a'],['綜合戰力',m.power,'#a78bfa'],['效率輸出',(m.effAvg*100),'#ff5470']].map(x=>`
+      <div class="card" style="padding:14px;text-align:center">
+        <div style="font-size:11px;color:var(--tx3);letter-spacing:.6px;margin-bottom:4px">${x[0]}</div>
+        <div class="num" style="font-size:30px;font-weight:700;color:${x[2]};line-height:1.1">${(+x[1]).toFixed(1)}</div>
+        <div class="bar" style="margin-top:8px"><i style="width:${clamp(x[1],0,100)}%;background:${x[2]}"></i></div>
+      </div>`).join('')}
+  </div>
+
+  <div class="anaGrid">
+    <div class="card">
+      <h3>12 維分類能力雷達 <span class="hint">彩色=含狀態/體能修正，灰色=原始能力</span></h3>
+      ${radarSVG([{color:'#54607a',vals:CATS.map(c=>m.catRaw[c.k])},{color:lu.color,vals:CATS.map(c=>m.cat[c.k])}],360)}
+      <div class="row" style="justify-content:center;margin-top:6px;font-size:11.5px">
+        <span><i style="display:inline-block;width:10px;height:10px;background:#54607a;border-radius:2px"></i> 原始能力</span>
+        <span><i style="display:inline-block;width:10px;height:10px;background:${lu.color};border-radius:2px"></i> 實戰輸出（×${(m.effAvg*100).toFixed(0)}%）</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>戰術需求 vs 陣容供給 <span class="hint">紅色=缺口，綠色=優勢</span></h3>
+      ${needBar.map(c=>{
+        const need=m.tv[c.k]*100, have=m.cat[c.k], d=have-need;
+        return `<div class="dimrow" style="grid-template-columns:88px 1fr 1fr 52px">
+          <div class="lb">${c.n}</div>
+          <div><div class="bar"><i style="width:${clamp(have,0,100)}%;background:${d>=0?'var(--grn)':'var(--red)'}"></i></div><div style="font-size:9.5px;color:var(--tx3);margin-top:2px">供給 ${have.toFixed(1)}</div></div>
+          <div><div class="bar"><i style="width:${clamp(need,0,100)}%;background:rgba(255,255,255,.30)"></i></div><div style="font-size:9.5px;color:var(--tx3);margin-top:2px">需求 ${need.toFixed(1)}</div></div>
+          <div class="vv" style="color:${d>=0?'var(--grn)':'var(--red)'}">${d>=0?'+':''}${d.toFixed(1)}</div>
+        </div>`}).join('')}
+    </div>
+  </div>
+
+  <div class="anaGrid" style="margin-top:16px">
+    <div class="card">
+      <h3>各分類能力值總和 — 五人貢獻拆解 <span class="hint">依位置權重 × 戰術使用率加權</span></h3>
+      <div style="max-height:520px;overflow-y:auto;padding-right:6px">
+      ${contrib.map(cc=>`
+        <div style="margin-bottom:13px">
+          <div class="row" style="margin-bottom:5px">
+            <b style="font-size:12.5px">${cc.c.n}</b>
+            <span class="badge bg-gry num">總和 ${cc.tot.toFixed(1)}</span>
+            <span class="badge ${cc.tot>=65?'bg-grn':cc.tot>=50?'bg-cy':'bg-red'} num">需求 ${(m.tv[cc.c.k]*100).toFixed(1)}</span>
+          </div>
+          <div class="contrib">
+            ${cc.rows.map(r=>`<div class="crow">
+              <div class="who"><span class="posTag p${r.p.pos}">${r.s}</span><span class="pnum num" style="width:22px;height:22px;flex:0 0 22px;font-size:10.5px">${r.p.num}</span><b>${esc(r.p.name)}</b></div>
+              <div class="bar"><i style="width:${clamp(r.v*2.4,0,100)}%;background:${r.s==='C'||r.s==='PF'?'var(--org)':r.s==='PG'||r.s==='SG'?'var(--cy)':'var(--yel)'}"></i></div>
+              <div class="vv num">+${r.v.toFixed(1)} <span style="color:var(--tx3);font-size:10px">(${r.raw.toFixed(0)})</span></div>
+            </div>`).join('')}
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <h3>診斷與建議</h3>
+        ${warn.map(w=>`<div class="note ${w.t}">${w.h}</div>`).join('')}
+        <div class="note"><b>缺口排序：</b>${gap.slice(0,3).map(g=>`${g.c.n}（${g.d.toFixed(1)}）`).join('、')} — 優先補強這三項，或改用需求較低的戰術核心。</div>
+        <div class="note g"><b>優勢項目：</b>${gap.slice(-3).reverse().map(g=>`${g.c.n}（+${g.d.toFixed(1)}）`).join('、')} — 戰術應盡量圍繞這些強項設計。</div>
+      </div>
+      <div class="card">
+        <h3>本陣容球員明細</h3>
+        ${m.five.map(p=>`
+        <div class="pcard" style="margin-bottom:9px">
+          <div class="pchead">
+            <span class="pnum num">${p.num}</span>
+            <div style="flex:1;min-width:0"><b>${esc(p.name)}</b><div style="font-size:10.5px;color:var(--tx3)"><span class="posTag p${p.pos}">${p.pos}</span> ${p.age}歲 · ${p.height}cm · ${esc(p.nick)}</div></div>
+            <span class="archetype">${archetype(p)}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:88px 1fr;gap:10px;align-items:center">
+            ${miniRadar(p,150)}
+            <div>
+              <dl class="kv">
+                <dt>外線值</dt><dd style="color:#5fe3f0">${p.out}</dd>
+                <dt>內線值</dt><dd style="color:#ffa257">${p.inn}</dd>
+                <dt>總和</dt><dd>${p.sum}</dd>
+                <dt>進攻 / 防守</dt><dd>${p.off.toFixed(1)} / ${p.def.toFixed(1)}</dd>
+                <dt>狀態</dt><dd>${p.cond}/8 ${condPips(p.cond)}</dd>
+                <dt>出賽 / 體能上限</dt><dd>${p.min} / ${p.cap.toFixed(0)}</dd>
+                <dt>效率係數</dt><dd style="color:${p.eff>=1?'var(--grn)':p.eff>=.85?'var(--yel)':'var(--red)'}">${(p.eff*100).toFixed(0)}%</dd>
+                <dt>戰力指數</dt><dd style="color:var(--org2)">${p.pow.toFixed(1)}</dd>
+                <dt>週薪</dt><dd>${fmt$(p.salary)}</dd>
+              </dl>
+            </div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>同一戰術設定下的陣容排名 <span class="hint">套用「${esc(lu.name)}」的戰術向量，重新評估全部 ${LU.length} 組陣容</span></h3>
+    ${LU.map(l=>{const mm=analyze(Object.assign({},l,{cfg:lu.cfg}));return {l,mm}}).sort((a,b)=>b.mm.fit-a.mm.fit).map((x,i)=>`
+      <div class="optRow ${i===0?'top':''}">
+        <div class="rk">${i+1}</div>
+        <div><b style="color:${x.l.color}">${x.l.id} · ${esc(x.l.name)}</b>
+          <div style="font-size:11px;color:var(--tx3)">${SLOTS.map(s=>{const p=byNum(x.l.slots[s]);return p?`#${p.num}${esc(p.name.split(' ')[0])}`:'—'}).join(' · ')}</div></div>
+        <div><div class="bar"><i style="width:${clamp(x.mm.fit,0,100)}%;background:${x.l.color}"></i></div></div>
+        <div class="vv num" style="text-align:right;font-size:16px;color:${x.l.color}">${x.mm.fit.toFixed(1)}</div>
+      </div>`).join('')}
+  </div>`;
+
+  $$('#v-tactic [data-ana]').forEach(b=>b.onclick=()=>{activeLU=b.dataset.ana;renderNav();renderTactic()});
+}
+
+/* ==================== 11. 陣容對比 ==================== */
+function renderCompare(){
+  const list=LU.filter(l=>l.on).map(analyze);
+  if(!list.length){$('#v-compare').innerHTML='<div class="card">尚無啟用中的陣容，請到「陣容編排」啟用。</div>';return}
+  const dims=[
+    ['戰術契合度','fit','#ff7a1a'],['進攻指數','off','#26d7e8'],['防守指數','def','#3ddc97'],
+    ['籃板保護',null,'#ffb03a'],['外線火力',null,'#5fe3f0'],['內線火力',null,'#ffa257'],
+    ['體能耐力',null,'#a78bfa'],['轉換速度',null,'#ffd166'],['傳球組織',null,'#8ad4ff'],
+    ['比賽經驗',null,'#c3b0fd'],['罰球穩定',null,'#9be8c8'],['身高尺寸',null,'#ffb9a1'],
+    ['綜合戰力','power','#ff5470'],['板凳深度','benchPow','#7f8ea3']
+  ];
+  const valOf=(m,k)=>{
+    if(k==='fit'||k==='off'||k==='def'||k==='power'||k==='benchPow') return m[k];
+    const map={'籃板保護':'reb','外線火力':'shoot','內線火力':'post','體能耐力':'stam','轉換速度':'fast','傳球組織':'pass','比賽經驗':'exp','罰球穩定':'ft','身高尺寸':'size'};
+    return m.cat[map[k]]||0;
+  };
+  const dimRows=dims.map(d=>{
+    const vs=list.map(m=>valOf(m,d[1]||d[0]));
+    const mx=Math.max(...vs), mn=Math.min(...vs);
+    return `<tr>
+      <td style="font-weight:700">${d[0]}</td>
+      ${vs.map(v=>`<td class="v ${v===mx&&list.length>1?'best':v===mn&&list.length>1?'worst':''}" style="color:${v===mx?d[2]:''}">${v.toFixed(1)}</td>`).join('')}
+      <td class="barcell">${vs.map((v,i)=>`<div class="bar" style="margin-bottom:3px"><i style="width:${clamp(v,0,100)}%;background:${list[i].lu.color}"></i></div>`).join('')}</td>
+    </tr>`;
+  }).join('');
+
+  const scenarios=[
+    {n:'快攻對決（極速+壓迫）',cfg:{pace:2,style:12,def:'press',play:'motion'}},
+    {n:'陣地防守戰（慢攻+2-3聯防）',cfg:{pace:92,style:70,def:'z23',play:'isoPost'}},
+    {n:'三分大戰（純外線+擋拆）',cfg:{pace:35,style:2,def:'man',play:'pnr'}},
+    {n:'禁區肉搏（純內線+低位分球）',cfg:{pace:80,style:98,def:'man',play:'postSplit'}},
+    {n:'關鍵時刻（經驗+罰球+盯人）',cfg:{pace:70,style:55,def:'man',play:'isoPeri'}}
+  ];
+
+  $('#v-compare').innerHTML=`
+  <div class="anaGrid" style="grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);margin-bottom:16px">
+    <div class="card">
+      <h3>雷達疊圖 <span class="hint">12 維分類能力（含狀態修正）</span></h3>
+      ${radarSVG(list.map(m=>({color:m.lu.color,vals:CATS.map(c=>m.cat[c.k])})),380)}
+      <div class="row" style="justify-content:center;margin-top:8px">
+        ${list.map(m=>`<span class="badge" style="color:${m.lu.color};border-color:${m.lu.color}66;background:${m.lu.color}18">${m.lu.id} ${esc(m.lu.name)}</span>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <h3>陣容總覽卡</h3>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(215px,1fr))">
+        ${list.map(m=>{const g=grade(m.fit);return `<div class="pcard" style="border-left:3px solid ${m.lu.color}">
+          <div class="pchead"><span class="tag" style="width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-family:'Chakra Petch';font-weight:700;color:#0a0e17;background:${m.lu.color}">${m.lu.id}</span>
+            <b style="flex:1">${esc(m.lu.name)}</b><span class="badge ${g[0]}">${g[1]}</span></div>
+          <div style="font-size:11px;color:var(--tx3);margin-bottom:7px">${(PLAY_OPTS.find(x=>x.id===m.cfg.play)||{}).n} · ${(DEF_OPTS.find(x=>x.id===m.cfg.def)||{}).n} · 節奏${(100-m.cfg.pace)} · 內外${m.cfg.style}</div>
+          <div class="mini" style="grid-template-columns:repeat(3,1fr)">
+            <div><b style="color:${m.lu.color}">${m.fit.toFixed(1)}</b><i>契合</i></div>
+            <div><b style="color:var(--cy)">${m.off.toFixed(1)}</b><i>進攻</i></div>
+            <div><b style="color:var(--grn)">${m.def.toFixed(1)}</b><i>防守</i></div>
+            <div><b style="color:var(--org2)">${m.reb.toFixed(1)}</b><i>籃板</i></div>
+            <div><b style="color:var(--pur)">${m.power.toFixed(1)}</b><i>戰力</i></div>
+            <div><b>${(m.effAvg*100).toFixed(0)}%</b><i>效率</i></div>
+          </div>
+          <div class="roster">${m.five.map(p=>`<span class="chip"><span class="n num">${p.num}</span>${esc(p.name.split(' ')[0])}</span>`).join('')}</div>
+          <div style="margin-top:8px;font-size:11px;color:var(--tx3)">
+            外線總和 <b class="num" style="color:#5fe3f0">${m.outSum}</b> ｜ 內線總和 <b class="num" style="color:#ffa257">${m.inSum}</b> ｜ 平均身高 <b class="num">${m.avgH.toFixed(0)}</b>cm ｜ 週薪 <b class="num">${fmt$(m.salary)}</b>
+          </div>
+        </div>`}).join('')}
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>分類能力值總和對照表 <span class="hint">綠=該項最佳，紅=該項最差</span></h3>
+    <div class="scrollx"><table class="cmpTbl">
+      <thead><tr><th style="min-width:120px">評比維度</th>${list.map(m=>`<th style="text-align:right;color:${m.lu.color}">${m.lu.id} ${esc(m.lu.name)}</th>`).join('')}<th>視覺化對比</th></tr></thead>
+      <tbody>${dimRows}</tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h3>情境推演：不同比賽局面該派誰上場？ <span class="hint">把 5 種戰術情境套用到每組陣容，看誰最適應</span></h3>
+    <div class="scrollx"><table class="cmpTbl">
+      <thead><tr><th style="min-width:210px">比賽情境</th>${list.map(m=>`<th style="text-align:right;color:${m.lu.color}">${m.lu.id}</th>`).join('')}<th>最佳選擇</th></tr></thead>
+      <tbody>
+      ${scenarios.map(sc=>{
+        const vs=list.map(m=>analyze(Object.assign({},m.lu,{cfg:sc.cfg})).fit);
+        const mx=Math.max(...vs); const wi=vs.indexOf(mx);
+        return `<tr><td style="font-weight:700">${sc.n}</td>
+          ${vs.map(v=>`<td class="v ${v===mx?'best':''}">${v.toFixed(1)}</td>`).join('')}
+          <td><span class="badge" style="color:${list[wi].lu.color};border-color:${list[wi].lu.color}66;background:${list[wi].lu.color}1a">${list[wi].lu.id} · ${esc(list[wi].lu.name)}</span></td></tr>`;
+      }).join('')}
+      </tbody>
+    </table></div>
+  </div>`;
+}
+
+/* ==================== 12. 深度洞察 ==================== */
+function archetype(p){
+  const c={};CATS.forEach(x=>c[x.k]=p['_c_'+x.k]);
+  const score={
+   '三分射手':c.shoot*1.5+c.rg*0, '外圍狙擊手':c.shoot*1.4+c.ft*.4,
+   '組織核心':c.pass*1.5+c.handle*.7, '雙能衛':c.handle*1.1+c.shoot*.8+c.pass*.6,
+   '3D 側翼':c.pdef*1.05+c.shoot*.95, '防守鎖':c.pdef*1.35+c.idef*.5,
+   '禁區支柱':c.post*1.05+c.idef*.85+c.reb*.8, '籃板怪':c.reb*1.5+c.idef*.3,
+   '攻守全能':(c.shoot+c.post+c.pdef+c.reb)*.62, '活力工兵':c.stam*1.2+c.reb*.6+c.idef*.5,
+   '老將導師':c.exp*1.4+c.ft*.5, '潛力新秀':(p.pot/10)*1.6+(1-Math.min(1,(p.age-18)/12))*.5
+  };
+  return Object.keys(score).sort((a,b)=>score[b]-score[a])[0];
+}
+function renderInsight(){
+  const tiers=[['S','#3ddc97'],['A','#26d7e8'],['B','#ffb03a'],['C','#a78bfa'],['D','#ff5470']];
+  const sorted=P.slice().sort((a,b)=>b.pow-a.pow);
+  const tierOf=i=>tiers[Math.min(4,Math.floor(i/3))];
+  const tierHTML=tiers.map((t,i)=>{
+    const arr=sorted.slice(i*3,i*3+3);
+    return `<div class="tier"><div class="tierLab" style="background:${t[1]}">${t[0]}</div>
+      <div class="tierList">${arr.map(p=>`<span class="chip"><span class="n num" style="color:${t[1]}">${p.num}</span><b>${esc(p.name)}</b><em>${p.pos} · ${p.pow.toFixed(1)}</em></span>`).join('')}</div></div>`;
+  }).join('');
+
+  const effList=P.slice().map(p=>({p,v:p.pow/((+p.salary||1)/1000)})).sort((a,b)=>b.v-a.v);
+  const loadList=P.slice().map(p=>({p,over:p.min-p.cap,ratio:p.min/Math.max(1,p.cap)})).sort((a,b)=>b.ratio-a.ratio);
+  const devList=P.slice().map(p=>{
+    const growth=Math.max(0,(p.pot*2.2)-(Math.max(0,p.age-23)*1.35));
+    return {p,v:p.pow+growth*1.5,g:growth};
+  }).sort((a,b)=>b.v-a.v);
+
+  const presets=[
+    {n:'極速快攻 + 全場壓迫',cfg:{pace:2,style:10,def:'press',play:'motion'}},
+    {n:'外線三分雨 + 中外擋拆',cfg:{pace:30,style:5,def:'man',play:'pnr'}},
+    {n:'內線單打 + 2-3 聯防',cfg:{pace:88,style:95,def:'z23',play:'isoPost'}},
+    {n:'低位分球 + 人盯人',cfg:{pace:70,style:78,def:'man',play:'postSplit'}},
+    {n:'外線單打 + 3-2 聯防',cfg:{pace:45,style:20,def:'z32',play:'isoPeri'}},
+    {n:'傳切跑動 + 均衡',cfg:{pace:40,style:50,def:'man',play:'none'}}
+  ];
+  const bestForTactic=presets.map(pr=>{const r=optimize(pr.cfg,false);return {pr,top:r.slice(0,3)}});
+
+  const globalBest=optimize({pace:50,style:50,def:'man',play:'pnr'},false);
+  const crossBest=optimize({pace:50,style:50,def:'man',play:'pnr'},true);
+
+  const teamOut=CATS.map(c=>({c,v:Math.max(...P.map(p=>p['_c_'+c.k]))*100,avg:P.reduce((a,p)=>a+p['_c_'+c.k],0)/P.length*100}));
+
+  $('#v-insight').innerHTML=`
+  <div class="anaGrid" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin-bottom:16px">
+    <div class="card">
+      <h3>球員分檔（Tier List） <span class="hint">依位置加權戰力指數排序</span></h3>
+      ${tierHTML}
+    </div>
+    <div class="card">
+      <h3>全隊能力上限 vs 平均 <span class="hint">找出球隊的天花板與板凳落差</span></h3>
+      ${teamOut.sort((a,b)=>b.v-a.v).map(t=>`
+        <div class="dimrow" style="grid-template-columns:88px 1fr 96px">
+          <div class="lb">${t.c.n}</div>
+          <div style="position:relative">
+            <div class="bar" style="height:12px"><i style="width:${t.v}%;background:linear-gradient(90deg,#ff7a1a,#ffb03a)"></i></div>
+            <div style="position:absolute;left:${t.avg}%;top:-3px;width:2px;height:18px;background:#26d7e8;box-shadow:0 0 6px #26d7e8"></div>
+          </div>
+          <div style="text-align:right;font-size:11px"><span class="num" style="color:var(--org2)">${t.v.toFixed(0)}</span> <span class="muted">/</span> <span class="num" style="color:var(--cy)">${t.avg.toFixed(0)}</span></div>
+        </div>`).join('')}
+      <div class="row" style="margin-top:10px;font-size:11px;color:var(--tx3)"><span><i style="display:inline-block;width:14px;height:8px;background:linear-gradient(90deg,#ff7a1a,#ffb03a);border-radius:2px"></i> 隊內最強</span><span><i style="display:inline-block;width:2px;height:12px;background:#26d7e8"></i> 全隊平均</span></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>戰術專用最佳陣容產生器 <span class="hint">位置锁定：每個位置 3 人，共 243 種組合全掃描，列出各戰術 Top 3</span></h3>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(330px,1fr))">
+      ${bestForTactic.map(b=>`
+        <div class="pcard">
+          <div style="font-weight:900;font-size:13px;margin-bottom:9px;color:var(--org2)">${b.pr.n}</div>
+          ${b.top.map((m,i)=>`<div style="margin-bottom:7px">
+            <div class="row" style="gap:6px;margin-bottom:3px">
+              <span class="badge ${i===0?'bg-org':'bg-gry'} num">#${i+1}</span>
+              <b class="num" style="font-size:15px;color:${i===0?'var(--grn)':'var(--tx2)'}">${m.fit.toFixed(1)}</b>
+              <span style="font-size:10.5px;color:var(--tx3)">契合度</span>
+              <button class="btn sm" style="margin-left:auto;padding:2px 8px;font-size:10.5px" data-apply='${JSON.stringify(m.lu.slots)}' data-cfg='${JSON.stringify(b.pr.cfg)}'>套用到 A</button>
+            </div>
+            <div class="roster" style="margin-top:0">${SLOTS.map(s=>{const p=byNum(m.lu.slots[s]);return p?`<span class="chip"><span class="n num">${p.num}</span>${esc(p.name.split(' ')[0])}<em>${s}</em></span>`:''}).join('')}</div>
+          </div>`).join('')}
+        </div>`).join('')}
+    </div>
+  </div>
+
+  <div class="anaGrid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));margin-bottom:16px">
+    <div class="card">
+      <h3>薪金效率 <span class="hint">戰力指數 ÷ 千元週薪</span></h3>
+      ${effList.map((x,i)=>`<div class="dimrow" style="grid-template-columns:150px 1fr 52px">
+        <div style="display:flex;align-items:center;gap:6px;min-width:0"><span class="pnum num" style="width:22px;height:22px;flex:0 0 22px;font-size:10.5px">${x.p.num}</span><span style="font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.p.name)}</span></div>
+        <div class="bar"><i style="width:${clamp(x.v/effList[0].v*100,2,100)}%;background:${i<3?'var(--grn)':i>11?'var(--red)':'#3a7ea8'}"></i></div>
+        <div class="vv num">${x.v.toFixed(2)}</div></div>`).join('')}
+    </div>
+    <div class="card">
+      <h3>體能負荷報告 <span class="hint">出賽時間 vs 體能上限（16 + 體能×1.5）</span></h3>
+      ${loadList.map(x=>{
+        const pct=clamp(x.ratio*100,0,140);
+        const st=x.over>4?'bg-red':x.over>0?'bg-org':x.ratio<.35?'bg-cy':'bg-grn';
+        const lb=x.over>4?'過度使用':x.over>0?'接近上限':x.ratio<.35?'上場不足':'健康';
+        return `<div class="dimrow" style="grid-template-columns:150px 1fr 108px">
+          <div style="display:flex;align-items:center;gap:6px;min-width:0"><span class="pnum num" style="width:22px;height:22px;flex:0 0 22px;font-size:10.5px">${x.p.num}</span><span style="font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.p.name)}</span></div>
+          <div><div class="bar" style="height:10px"><i style="width:${clamp(pct,0,100)}%;background:${x.over>0?'linear-gradient(90deg,#ffb03a,#ff5470)':'linear-gradient(90deg,#26d7e8,#3ddc97)'}"></i></div>
+            <div style="font-size:9.5px;color:var(--tx3);margin-top:2px" class="num">${x.p.min} 分 / 上限 ${x.p.cap.toFixed(0)} 分（體能 ${x.p.st}）</div></div>
+          <div style="text-align:right"><span class="badge ${st}">${lb}</span></div></div>`}).join('')}
+    </div>
+    <div class="card">
+      <h3>未來價值（潛力開發） <span class="hint">目前戰力 + 潛力成長預估</span></h3>
+      ${devList.map((x,i)=>`<div class="dimrow" style="grid-template-columns:150px 1fr 96px">
+        <div style="display:flex;align-items:center;gap:6px;min-width:0"><span class="pnum num" style="width:22px;height:22px;flex:0 0 22px;font-size:10.5px">${x.p.num}</span><span style="font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.p.name)}</span></div>
+        <div class="bar"><i style="width:${clamp(x.v/devList[0].v*100,2,100)}%;background:linear-gradient(90deg,#a78bfa,#26d7e8)"></i></div>
+        <div style="text-align:right;font-size:11px"><span class="num" style="color:var(--pur)">${x.v.toFixed(1)}</span> <span class="muted num">(+${x.g.toFixed(1)})</span></div></div>`).join('')}
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>全組合掃描：綜合最佳 Top 8 <span class="hint">中外擋拆 / 人盯人 / 均衡節奏，243 種位置锁定組合</span></h3>
+    ${globalBest.slice(0,8).map((m,i)=>`<div class="optRow ${i===0?'top':''}">
+      <div class="rk">${i+1}</div>
+      <div><div class="roster" style="margin:0">${SLOTS.map(s=>{const p=byNum(m.lu.slots[s]);return p?`<span class="chip"><span class="n num">${p.num}</span>${esc(p.name.split(' ')[0])}<em>${s}</em></span>`:''}).join('')}</div></div>
+      <div><div class="bar"><i style="width:${clamp(m.fit,0,100)}%;background:var(--org)"></i></div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:2px" class="num">攻 ${m.off.toFixed(0)} / 守 ${m.def.toFixed(0)} / 板 ${m.reb.toFixed(0)}</div></div>
+      <div style="text-align:right"><div class="num" style="font-size:17px;font-weight:700;color:var(--org2)">${m.fit.toFixed(1)}</div>
+        <button class="btn sm" style="margin-top:2px;padding:1px 7px;font-size:10px" data-apply='${JSON.stringify(m.lu.slots)}'>套用</button></div>
+    </div>`).join('')}
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>跨位置掃描（位置模糊化） <span class="hint">允許 PG↔SG、PF↔C 互換，尋找非傳統組合</span></h3>
+    ${crossBest.slice(0,5).map((m,i)=>`<div class="optRow ${i===0?'top':''}">
+      <div class="rk">${i+1}</div>
+      <div><div class="roster" style="margin:0">${SLOTS.map(s=>{const p=byNum(m.lu.slots[s]);return p?`<span class="chip"><span class="n num">${p.num}</span>${esc(p.name.split(' ')[0])}<em>${s}${p.pos!==s?'⚠'+p.pos:''}</em></span>`:''}).join('')}</div></div>
+      <div><div class="bar"><i style="width:${clamp(m.fit,0,100)}%;background:var(--cy)"></i></div></div>
+      <div class="vv num" style="text-align:right;color:var(--cy)">${m.fit.toFixed(1)}</div>
+    </div>`).join('')}
+  </div>
+
+  <div class="card">
+    <h3>球員定位總表 <span class="hint">自動分類 · 15 人</span></h3>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(258px,1fr))">
+      ${sorted.map(p=>`<div class="pcard">
+        <div class="pchead"><span class="pnum num">${p.num}</span>
+          <div style="flex:1;min-width:0"><b style="font-size:12.5px">${esc(p.name)}</b>
+          <div style="font-size:10.5px;color:var(--tx3)"><span class="posTag p${p.pos}">${p.pos}</span> ${esc(p.nick)} · ${p.age}歲 · ${p.height}cm · 潛力${p.pot}</div></div>
+          <b class="num" style="color:var(--org2);font-size:17px">${p.pow.toFixed(1)}</b></div>
+        <div style="margin-bottom:7px"><span class="archetype">${archetype(p)}</span></div>
+        <div class="bar" style="margin-bottom:5px"><i style="width:${p.out/120*100}%;background:#26d7e8"></i></div>
+        <div style="font-size:10px;color:var(--tx3);margin-bottom:5px" class="num">外線 ${p.out} / 120</div>
+        <div class="bar" style="margin-bottom:5px"><i style="width:${p.inn/80*100}%;background:#ff7a1a"></i></div>
+        <div style="font-size:10px;color:var(--tx3);margin-bottom:7px" class="num">內線 ${p.inn} / 80</div>
+        <dl class="kv" style="font-size:11px">
+          <dt>狀態 / 體能</dt><dd>${p.cond}/8 · ${p.st}/20</dd>
+          <dt>效率係數</dt><dd style="color:${p.eff>=1?'var(--grn)':p.eff>=.85?'var(--yel)':'var(--red)'}">${(p.eff*100).toFixed(0)}%</dd>
+          <dt>薪金效率</dt><dd>${(p.pow/((+p.salary||1)/1000)).toFixed(2)}</dd>
+        </dl>
+      </div>`).join('')}
+    </div>
+  </div>`;
+
+  $$('#v-insight [data-apply]').forEach(b=>b.onclick=()=>{
+    LU[0].slots=JSON.parse(b.dataset.apply);
+    if(b.dataset.cfg) LU[0].cfg=JSON.parse(b.dataset.cfg);
+    save(); toast('已套用到陣容 A，可至「陣容編排」查看'); renderNav(); renderHead();
+  });
+}
+
+/* ==================== 13. 主渲染 ==================== */
+function render(){
+  renderNav(); renderHead();
+  $$('.view').forEach(v=>v.classList.remove('on'));
+  const el=$('#v-'+view); el.classList.add('on');
+  if(view==='players') renderPlayers();
+  else if(view==='lineup') renderLineup();
+  else if(view==='tactic') renderTactic();
+  else if(view==='compare') renderCompare();
+  else renderInsight();
+}
+load(); recalcAll(); render();
+</script>
+</body>
+</html>
